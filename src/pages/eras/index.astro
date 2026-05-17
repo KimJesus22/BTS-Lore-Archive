@@ -2,9 +2,19 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Card from '../../components/Card.astro';
 import EmptyState from '../../components/EmptyState.astro';
+import ErrorState from '../../components/ErrorState.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import { getEras } from '../../services/eras.service';
-const eras = await getEras();
+
+let eras: Awaited<ReturnType<typeof getEras>> = [];
+let loadError = false;
+
+try {
+  eras = await getEras();
+} catch (error) {
+  loadError = true;
+  console.error('No se pudieron cargar las eras', error);
+}
 
 const formatEraYears = (startYear?: number, endYear?: number) => {
   if (!startYear && !endYear) return 'Sin fecha';
@@ -13,19 +23,26 @@ const formatEraYears = (startYear?: number, endYear?: number) => {
 };
 ---
 
-<BaseLayout title="Eras">
+<BaseLayout title="Eras" description="Explora todas las eras narrativas de BTS Lore Archive con sus años, estado y descripción principal.">
   <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
-    <PageHeader 
-      tag="Crónicas" 
-      title="Todas las Eras" 
-      description="Explora la evolución de la narrativa a lo largo de las distintas eras. Cada periodo marca un nuevo capítulo en la historia." 
+    <PageHeader
+      tag="Crónicas"
+      title="Todas las Eras"
+      description="Explora la evolución de la narrativa a lo largo de las distintas eras. Cada periodo marca un nuevo capítulo en la historia."
       align="left"
     />
 
-    {eras.length > 0 ? (
+    {loadError ? (
+      <ErrorState
+        title="No pudimos cargar las eras"
+        message="El archivo no respondió al consultar las eras. Vuelve al inicio o intenta recargar la página."
+        actionLabel="Volver al inicio"
+        actionHref="/"
+      />
+    ) : eras.length > 0 ? (
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {eras.map((era) => (
-          <Card 
+          <Card
             title={era.title}
             description={era.description}
             tag={formatEraYears(era.start_year, era.end_year)}
@@ -36,7 +53,12 @@ const formatEraYears = (startYear?: number, endYear?: number) => {
         ))}
       </div>
     ) : (
-      <EmptyState title="No hay eras registradas" description="Cuando se publiquen nuevas eras, aparecerán aquí como artefactos del archivo." />
+      <EmptyState
+        title="No hay eras registradas"
+        description="Cuando se publiquen nuevas eras, aparecerán aquí como artefactos del archivo."
+        actionLabel="Ir al inicio"
+        actionHref="/"
+      />
     )}
   </div>
 </BaseLayout>

@@ -1,0 +1,121 @@
+---
+interface Props {
+  contentType: 'era' | 'theory' | 'glossary';
+  contentSlug: string;
+  title: string;
+  href: string;
+}
+
+const { contentType, contentSlug, title, href } = Astro.props;
+---
+
+<section
+  class="personal-notes glass-card p-6 md:p-8"
+  data-content-type={contentType}
+  data-content-slug={contentSlug}
+  data-title={title}
+  data-href={href}
+>
+  <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="label-caps text-primary-light">Notas personales</p>
+      <h2 class="mt-2 text-xl font-serif text-on-surface">Tu lectura privada</h2>
+    </div>
+    <p class="text-xs text-on-surface-variant" data-notes-status>Guardado automáticamente</p>
+  </div>
+
+  <label class="sr-only" for={`notes-${contentType}-${contentSlug}`}>Notas sobre {title}</label>
+  <textarea
+    id={`notes-${contentType}-${contentSlug}`}
+    class="min-h-36 w-full rounded-xl border border-white/10 bg-surface-dim/80 px-4 py-3 text-sm leading-relaxed text-on-surface outline-none transition-colors placeholder:text-on-surface-variant focus:border-primary/60"
+    placeholder="Escribe observaciones, conexiones o teorías personales..."
+    data-notes-textarea
+  ></textarea>
+</section>
+
+<script>
+  interface PersonalNote {
+    contentType: string;
+    contentSlug: string;
+    title?: string;
+    href?: string;
+    text: string;
+    updatedAt: string;
+  }
+
+  const notesStorageKey = 'bts-lore-notes';
+
+  const readNotes = (): PersonalNote[] => {
+    try {
+      const stored = window.localStorage.getItem(notesStorageKey);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const writeNotes = (notes: PersonalNote[]) => {
+    window.localStorage.setItem(notesStorageKey, JSON.stringify(notes));
+    window.dispatchEvent(new CustomEvent('bts-lore-notes-updated'));
+  };
+
+  const findNote = (notes: PersonalNote[], contentType: string, contentSlug: string) =>
+    notes.find((note) => note.contentType === contentType && note.contentSlug === contentSlug);
+
+  const upsertNote = (nextNote: PersonalNote) => {
+    const notes = readNotes();
+    const existing = findNote(notes, nextNote.contentType, nextNote.contentSlug);
+
+    if (!nextNote.text.trim()) {
+      writeNotes(notes.filter((note) => !(note.contentType === nextNote.contentType && note.contentSlug === nextNote.contentSlug)));
+      return;
+    }
+
+    if (existing) {
+      existing.text = nextNote.text;
+      existing.title = nextNote.title;
+      existing.href = nextNote.href;
+      existing.updatedAt = nextNote.updatedAt;
+      writeNotes(notes);
+      return;
+    }
+
+    writeNotes([...notes, nextNote]);
+  };
+
+  document.querySelectorAll<HTMLElement>('.personal-notes').forEach((root) => {
+    if (root.dataset.notesReady === 'true') return;
+    root.dataset.notesReady = 'true';
+
+    const textarea = root.querySelector<HTMLTextAreaElement>('[data-notes-textarea]');
+    const status = root.querySelector<HTMLElement>('[data-notes-status]');
+    const contentType = root.dataset.contentType ?? '';
+    const contentSlug = root.dataset.contentSlug ?? '';
+    const title = root.dataset.title ?? '';
+    const href = root.dataset.href ?? '';
+    const existing = findNote(readNotes(), contentType, contentSlug);
+    let saveTimer: number | undefined;
+
+    if (textarea && existing) {
+      textarea.value = existing.text;
+    }
+
+    textarea?.addEventListener('input', () => {
+      if (status) status.textContent = 'Guardando...';
+      window.clearTimeout(saveTimer);
+
+      saveTimer = window.setTimeout(() => {
+        upsertNote({
+          contentType,
+          contentSlug,
+          title,
+          href,
+          text: textarea.value,
+          updatedAt: new Date().toISOString(),
+        });
+
+        if (status) status.textContent = 'Guardado automáticamente';
+      }, 450);
+    });
+  });
+</script>

@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Card from '../../components/Card.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import FavoriteButton from '../../components/FavoriteButton.astro';
+import PersonalNotes from '../../components/PersonalNotes.astro';
 import { getTheories } from '../../services/theories.service';
 import { calculateReadingTime } from '../../utils/readingTime';
 import type { Theory } from '../../types/content';
@@ -127,7 +128,7 @@ const parseTheoryContent = (content: string) => {
 const { blocks: contentBlocks, headings } = parseTheoryContent(theory.content);
 ---
 
-<BaseLayout title={theory.title} description={metaDescription}>
+<BaseLayout title={theory.title} description={metaDescription} canonical={`/theories/${theory.slug}`}>
   <article class="max-w-[960px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
     <a href="/theories" class="mb-8 inline-flex items-center text-sm font-semibold text-on-surface-variant transition-colors hover:text-primary-light">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="mr-2 h-4 w-4" aria-hidden="true">
@@ -238,6 +239,10 @@ const { blocks: contentBlocks, headings } = parseTheoryContent(theory.content);
     >
       Volver arriba
     </button>
+
+    <section class="mt-14">
+      <PersonalNotes contentType="theory" contentSlug={theory.slug} title={theory.title} href={`/theories/${theory.slug}`} />
+    </section>
 
     <section class="mt-14">
       <div class="mb-6 flex items-end justify-between gap-4 border-b border-border/50 pb-4">

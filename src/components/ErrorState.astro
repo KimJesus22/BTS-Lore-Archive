@@ -1,0 +1,31 @@
+---
+interface Props {
+  title?: string;
+  message?: string;
+  actionLabel?: string;
+  actionHref?: string;
+}
+
+const {
+  title = 'No pudimos cargar esta sección',
+  message = 'Hubo un problema al leer los datos. Intenta volver al archivo principal y revisarlo de nuevo.',
+  actionLabel = 'Volver al inicio',
+  actionHref = '/',
+} = Astro.props;
+---
+
+<section class="glass-card p-8 text-center md:p-10" role="alert">
+  <div class="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-secondary-dim/35 bg-secondary-dim/10 text-secondary-dim">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12V16.5Zm9-4.5a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+  </div>
+  <h2 class="text-headline-md font-serif text-on-surface">{title}</h2>
+  <p class="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-on-surface-variant">{message}</p>
+  <a
+    href={actionHref}
+    class="mt-6 inline-flex items-center justify-center rounded-full border border-secondary-dim/50 px-5 py-2.5 text-sm font-semibold text-secondary-dim transition-colors hover:bg-secondary-dim/10 hover:text-white"
+  >
+    {actionLabel}
+  </a>
+</section>

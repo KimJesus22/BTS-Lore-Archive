@@ -1,46 +1,243 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import FavoriteButton from '../components/FavoriteButton.astro';
+import EmptyState from '../components/EmptyState.astro';
+import ErrorState from '../components/ErrorState.astro';
+import PersonalNotes from '../components/PersonalNotes.astro';
 import PageHeader from '../components/PageHeader.astro';
 import { getGlossaryTerms } from '../services/glossary.service';
 
-const glossary = await getGlossaryTerms();
+let glossary: Awaited<ReturnType<typeof getGlossaryTerms>> = [];
+let loadError = false;
+
+try {
+  glossary = await getGlossaryTerms();
+} catch (error) {
+  loadError = true;
+  console.error('No se pudo cargar el glosario', error);
+}
+
+const categories = [
+  { label: 'Todas', value: 'all' },
+  { label: 'Conceptos', value: 'conceptos' },
+  { label: 'Símbolos', value: 'simbolos' },
+  { label: 'Eras', value: 'eras' },
+  { label: 'Videos', value: 'videos' },
+  { label: 'Álbumes', value: 'albumes' },
+  { label: 'Teorías', value: 'teorias' },
+];
+
+const normalize = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+const normalizeCategory = (category?: string) => {
+  const normalized = normalize(category ?? '');
+
+  if (normalized.startsWith('concepto')) return 'conceptos';
+  if (normalized.startsWith('simbolo')) return 'simbolos';
+  if (normalized.startsWith('era')) return 'eras';
+  if (normalized.startsWith('video')) return 'videos';
+  if (normalized.startsWith('album')) return 'albumes';
+  if (normalized.startsWith('teoria')) return 'teorias';
+
+  return normalized || 'sin-categoria';
+};
+
+const groupedGlossary = glossary
+  .slice()
+  .sort((a, b) => a.term.localeCompare(b.term, 'es'))
+  .reduce<Record<string, typeof glossary>>((groups, item) => {
+    const letter = normalize(item.term).charAt(0).toUpperCase() || '#';
+    groups[letter] = [...(groups[letter] ?? []), item];
+    return groups;
+  }, {});
+
+const letters = Object.keys(groupedGlossary).sort((a, b) => a.localeCompare(b, 'es'));
 ---
 
-<BaseLayout title="Glosario">
-  <div class="max-w-[800px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
-    <PageHeader 
-      tag="Archivo" 
-      title="Glosario de Términos" 
-      description="Definiciones clave y conceptos recurrentes dentro del universo narrativo para ayudar a la comprensión de la historia." 
+<BaseLayout title="Glosario" description="Consulta términos, símbolos, conceptos, álbumes y teorías clave del universo narrativo de BTS.">
+  <div class="max-w-[960px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader
+      tag="Archivo"
+      title="Glosario de Términos"
+      description="Definiciones clave y conceptos recurrentes dentro del universo narrativo para ayudar a la comprensión de la historia."
       align="left"
     />
 
-    <div class="space-y-8">
-      {glossary.map((item) => (
-        <div id={item.slug} class="glass-card scroll-mt-28 p-6 md:p-8">
-          <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div class="flex flex-wrap items-center gap-4">
-              <h2 class="text-2xl font-serif font-bold text-on-surface">{item.term}</h2>
-              {item.category && (
-                <span class="label-caps text-secondary-dim bg-secondary-dim/10 px-2 py-1 rounded border border-secondary-dim/20">
-                  {item.category}
-                </span>
-              )}
-            </div>
-            <FavoriteButton
-              id={item.id}
-              type="glossary"
-              title={item.term}
-              description={item.definition}
-              href={`/glossary#${item.slug}`}
+    {loadError ? (
+      <ErrorState
+        title="No pudimos cargar el glosario"
+        message="El índice de términos no está disponible en este momento. Vuelve al inicio o intenta recargar la página."
+        actionLabel="Volver al inicio"
+        actionHref="/"
+      />
+    ) : glossary.length > 0 ? (
+      <>
+        <section class="glass-card mb-10 p-5 md:p-6">
+          <label class="block">
+            <span class="label-caps mb-2 block text-primary-light">Buscar en el glosario</span>
+            <input
+              id="glossary-search"
+              type="search"
+              placeholder="Buscar término, definición o categoría..."
+              class="w-full rounded-xl border border-white/10 bg-surface-dim px-4 py-3 text-on-surface outline-none transition-colors placeholder:text-on-surface-variant focus:border-primary/60"
             />
+          </label>
+
+          <div class="mt-5 flex flex-wrap gap-2" aria-label="Filtros de categoría">
+            {categories.map((category) => (
+              <button
+                type="button"
+                data-category-filter={category.value}
+                aria-pressed={category.value === 'all' ? 'true' : 'false'}
+                class={`glossary-category-filter rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                  category.value === 'all'
+                    ? 'border-primary/50 bg-primary/20 text-primary-light'
+                    : 'border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-primary/35 hover:text-primary-light'
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
           </div>
-          <p class="text-on-surface-variant font-sans leading-relaxed text-lg">
-            {item.definition}
-          </p>
+
+          <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/50 pt-5">
+            <p id="glossary-count" class="text-sm text-on-surface-variant">{glossary.length} términos visibles</p>
+            <nav class="flex flex-wrap gap-2" aria-label="Navegación alfabética">
+              {letters.map((letter) => (
+                <a href={`#glossary-letter-${letter}`} class="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-sm font-semibold text-on-surface-variant transition-colors hover:border-primary/35 hover:text-primary-light">
+                  {letter}
+                </a>
+              ))}
+            </nav>
+          </div>
+        </section>
+
+        <div id="glossary-empty-filter" class="hidden">
+          <EmptyState title="No hay términos visibles" description="Prueba con otra búsqueda o selecciona otra categoría." />
         </div>
-      ))}
-    </div>
+
+        <div id="glossary-groups" class="space-y-12">
+          {letters.map((letter) => (
+            <section id={`glossary-letter-${letter}`} class="glossary-letter-group scroll-mt-28 space-y-5" data-letter={letter}>
+              <div class="flex items-center gap-4 border-b border-border/50 pb-3">
+                <span class="font-serif text-4xl text-primary-light">{letter}</span>
+                <span class="label-caps text-on-surface-variant">{groupedGlossary[letter].length} término{groupedGlossary[letter].length === 1 ? '' : 's'}</span>
+              </div>
+
+              <div class="space-y-6">
+                {groupedGlossary[letter].map((item) => (
+                  <div
+                    id={item.slug}
+                    class="glossary-term glass-card scroll-mt-28 p-6 md:p-8"
+                    data-category={normalizeCategory(item.category)}
+                    data-search={`${item.term} ${item.definition} ${item.category ?? ''}`}
+                  >
+                    <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div class="flex flex-wrap items-center gap-4">
+                        <h2 class="text-2xl font-serif font-bold text-on-surface">{item.term}</h2>
+                        {item.category && (
+                          <span class="label-caps text-secondary-dim bg-secondary-dim/10 px-2 py-1 rounded border border-secondary-dim/20">
+                            {item.category}
+                          </span>
+                        )}
+                      </div>
+                      <FavoriteButton
+                        id={item.id}
+                        type="glossary"
+                        title={item.term}
+                        description={item.definition}
+                        href={`/glossary#${item.slug}`}
+                      />
+                    </div>
+                    <p class="text-on-surface-variant font-sans leading-relaxed text-lg">
+                      {item.definition}
+                    </p>
+                    <div class="mt-6">
+                      <PersonalNotes contentType="glossary" contentSlug={item.slug} title={item.term} href={`/glossary#${item.slug}`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </>
+    ) : (
+      <EmptyState
+        title="No hay términos registrados"
+        description="El glosario mostrará conceptos y símbolos cuando existan registros disponibles."
+        actionLabel="Explorar archivo"
+        actionHref="/"
+      />
+    )}
   </div>
 </BaseLayout>
+
+<script>
+  const searchInput = document.getElementById('glossary-search') as HTMLInputElement | null;
+  const filters = Array.from(document.querySelectorAll<HTMLButtonElement>('.glossary-category-filter'));
+  const terms = Array.from(document.querySelectorAll<HTMLElement>('.glossary-term'));
+  const groups = Array.from(document.querySelectorAll<HTMLElement>('.glossary-letter-group'));
+  const countLabel = document.getElementById('glossary-count');
+  const emptyState = document.getElementById('glossary-empty-filter');
+
+  let activeCategory = 'all';
+
+  const normalize = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+
+  const setActiveFilter = () => {
+    filters.forEach((filter) => {
+      const isActive = filter.dataset.categoryFilter === activeCategory;
+      filter.setAttribute('aria-pressed', String(isActive));
+      filter.classList.toggle('border-primary/50', isActive);
+      filter.classList.toggle('bg-primary/20', isActive);
+      filter.classList.toggle('text-primary-light', isActive);
+      filter.classList.toggle('border-white/10', !isActive);
+      filter.classList.toggle('bg-white/[0.03]', !isActive);
+      filter.classList.toggle('text-on-surface-variant', !isActive);
+    });
+  };
+
+  const applyGlossaryFilters = () => {
+    const query = normalize(searchInput?.value ?? '');
+    let visibleCount = 0;
+
+    terms.forEach((term) => {
+      const matchesCategory = activeCategory === 'all' || term.dataset.category === activeCategory;
+      const matchesSearch = !query || normalize(term.dataset.search ?? '').includes(query);
+      const shouldShow = matchesCategory && matchesSearch;
+
+      term.classList.toggle('hidden', !shouldShow);
+      if (shouldShow) visibleCount += 1;
+    });
+
+    groups.forEach((group) => {
+      const visibleTerms = group.querySelectorAll('.glossary-term:not(.hidden)').length;
+      group.classList.toggle('hidden', visibleTerms === 0);
+    });
+
+    if (countLabel) {
+      countLabel.textContent = `${visibleCount} término${visibleCount === 1 ? '' : 's'} visible${visibleCount === 1 ? '' : 's'}`;
+    }
+
+    emptyState?.classList.toggle('hidden', visibleCount > 0);
+    setActiveFilter();
+  };
+
+  filters.forEach((filter) => {
+    filter.addEventListener('click', () => {
+      activeCategory = filter.dataset.categoryFilter ?? 'all';
+      applyGlossaryFilters();
+    });
+  });
+
+  searchInput?.addEventListener('input', applyGlossaryFilters);
+</script>

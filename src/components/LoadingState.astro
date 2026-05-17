@@ -1,0 +1,27 @@
+---
+import SkeletonCard from './SkeletonCard.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  cardCount?: number;
+}
+
+const {
+  title = 'Cargando archivo',
+  description = 'Estamos preparando los registros del BTS Lore Archive.',
+  cardCount = 3,
+} = Astro.props;
+---
+
+<section class="space-y-6" aria-live="polite" aria-busy="true">
+  <div class="glass-card p-6 text-center md:p-8">
+    <div class="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-primary/20 border-t-primary-light"></div>
+    <h2 class="text-xl font-serif text-on-surface">{title}</h2>
+    <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-on-surface-variant">{description}</p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    {Array.from({ length: cardCount }).map(() => <SkeletonCard />)}
+  </div>
+</section>

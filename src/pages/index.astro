@@ -10,9 +10,25 @@ const formatEraYears = (startYear?: number, endYear?: number) => {
   if (startYear && endYear) return `${startYear} - ${endYear}`;
   return `${startYear ?? endYear}`;
 };
+
+const homeDescription = 'Explora el universo narrativo de BTS con eras, cronología, teorías, miembros, símbolos y términos clave en español.';
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'BTS Lore Archive',
+  description: homeDescription,
+  inLanguage: 'es',
+  url: Astro.url.origin,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: `${Astro.url.origin}/search?q={search_term_string}`,
+    'query-input': 'required name=search_term_string',
+  },
+};
 ---
 
-<BaseLayout title="Inicio">
+<BaseLayout title="Inicio" description={homeDescription} canonical="/">
+  <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   {/* Hero Section */}
   <section class="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
     {/* Decorative background elements */}

@@ -2,24 +2,40 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Card from '../components/Card.astro';
 import EmptyState from '../components/EmptyState.astro';
+import ErrorState from '../components/ErrorState.astro';
 import PageHeader from '../components/PageHeader.astro';
 import { getTheories } from '../services/theories.service';
 
-const theories = await getTheories();
+let theories: Awaited<ReturnType<typeof getTheories>> = [];
+let loadError = false;
+
+try {
+  theories = await getTheories();
+} catch (error) {
+  loadError = true;
+  console.error('No se pudieron cargar las teorías', error);
+}
 ---
 
-<BaseLayout title="Teorías">
+<BaseLayout title="Teorías" description="Lee teorías del lore de BTS, conexiones simbólicas e interpretaciones de la comunidad.">
   <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
-    <PageHeader 
-      tag="Comunidad" 
-      title="Teorías del Lore" 
-      description="Explora las diferentes interpretaciones, simbolismos y conexiones ocultas descubiertas y debatidas por la comunidad a lo largo de los años." 
+    <PageHeader
+      tag="Comunidad"
+      title="Teorías del Lore"
+      description="Explora las diferentes interpretaciones, simbolismos y conexiones ocultas descubiertas y debatidas por la comunidad a lo largo de los años."
     />
 
-    {theories.length > 0 ? (
+    {loadError ? (
+      <ErrorState
+        title="No pudimos cargar las teorías"
+        message="El archivo no pudo recuperar las teorías publicadas. Vuelve al inicio o intenta recargar la página."
+        actionLabel="Volver al inicio"
+        actionHref="/"
+      />
+    ) : theories.length > 0 ? (
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {theories.map((theory) => (
-          <Card 
+          <Card
             id={theory.slug}
             title={theory.title}
             description={theory.content}
@@ -30,7 +46,12 @@ const theories = await getTheories();
         ))}
       </div>
     ) : (
-      <EmptyState title="No hay teorías publicadas" description="Las interpretaciones de la comunidad aparecerán aquí cuando estén disponibles." />
+      <EmptyState
+        title="No hay teorías publicadas"
+        description="Las interpretaciones de la comunidad aparecerán aquí cuando estén disponibles."
+        actionLabel="Explorar timeline"
+        actionHref="/timeline"
+      />
     )}
   </div>
 </BaseLayout>

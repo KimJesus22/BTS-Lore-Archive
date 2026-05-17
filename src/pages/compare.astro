@@ -1,0 +1,223 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EmptyState from '../components/EmptyState.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { getEras } from '../services/eras.service';
+import { getTimelineEvents } from '../services/timeline.service';
+
+const [eras, timelineEvents] = await Promise.all([
+  getEras(),
+  getTimelineEvents(),
+]);
+
+const eraSupplemental: Record<string, { symbols: string[]; songs: string[]; themes: string[] }> = {
+  hyyh: {
+    symbols: ['Flor Smeraldo', 'Diario', 'Aula vacía', 'Mar'],
+    songs: ['I Need U', 'Run', 'Young Forever'],
+    themes: ['Juventud', 'Pérdida', 'Amistad', 'Ciclos temporales'],
+  },
+  wings: {
+    symbols: ['Alas', 'Pintura', 'Tentación', 'Espejo'],
+    songs: ['Blood Sweat & Tears', 'Begin', 'Lie'],
+    themes: ['Deseo', 'Crecimiento', 'Culpa', 'Pérdida de inocencia'],
+  },
+  'love-yourself': {
+    symbols: ['Máscaras', 'Flores', 'Reflejos', 'Diario'],
+    songs: ['DNA', 'Fake Love', 'Epiphany'],
+    themes: ['Amor propio', 'Identidad', 'Dolor', 'Aceptación'],
+  },
+  'map-of-the-soul': {
+    symbols: ['Sombra', 'Ego', 'Mapa', 'Persona'],
+    songs: ['Black Swan', 'ON', 'Persona'],
+    themes: ['Psique', 'Sombra', 'Ego', 'Autoconocimiento'],
+  },
+};
+
+const compareData = eras.map((era) => ({
+  id: era.id,
+  slug: era.slug,
+  title: era.title,
+  description: era.description,
+  years: era.start_year ? `${era.start_year} - ${era.end_year ?? 'Presente'}` : 'Sin datos todavía',
+  symbols: eraSupplemental[era.slug]?.symbols ?? [],
+  songs: eraSupplemental[era.slug]?.songs ?? [],
+  themes: eraSupplemental[era.slug]?.themes ?? [],
+  events: timelineEvents
+    .filter((event) => event.era_id === era.id)
+    .map((event) => ({
+      title: event.title,
+      date: event.event_date ?? 'Sin fecha',
+      href: `/timeline#${event.slug || event.id}`,
+    })),
+}));
+
+const serializedCompareData = JSON.stringify(compareData).replace(/</g, '\\u003c');
+---
+
+<BaseLayout title="Comparar Eras" description="Compara dos eras del BTS Lore Archive lado a lado.">
+  <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader
+      tag="Análisis paralelo"
+      title="Comparador de Eras"
+      description="Selecciona dos eras para contrastar símbolos, canciones, temas narrativos y eventos clave del archivo."
+      align="left"
+    />
+
+    {eras.length >= 2 ? (
+      <>
+        <section class="glass-card mb-10 p-5 md:p-6">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <label class="block">
+              <span class="label-caps mb-2 block text-primary-light">Era A</span>
+              <select id="compare-era-a" class="w-full rounded-xl border border-white/10 bg-surface-dim px-4 py-3 text-on-surface outline-none transition-colors focus:border-primary/60">
+                {eras.map((era, index) => (
+                  <option value={era.slug} selected={index === 0}>{era.title}</option>
+                ))}
+              </select>
+            </label>
+
+            <label class="block">
+              <span class="label-caps mb-2 block text-primary-light">Era B</span>
+              <select id="compare-era-b" class="w-full rounded-xl border border-white/10 bg-surface-dim px-4 py-3 text-on-surface outline-none transition-colors focus:border-primary/60">
+                {eras.map((era, index) => (
+                  <option value={era.slug} selected={index === 1}>{era.title}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section id="compare-grid" class="grid grid-cols-1 gap-8 lg:grid-cols-2"></section>
+      </>
+    ) : (
+      <EmptyState title="No hay suficientes eras" description="Se necesitan al menos dos eras para activar el comparador." />
+    )}
+  </div>
+</BaseLayout>
+
+<script is:inline id="compare-data" type="application/json" set:html={serializedCompareData}></script>
+
+<script>
+  interface CompareEvent {
+    title: string;
+    date: string;
+    href: string;
+  }
+
+  interface CompareEra {
+    id: string;
+    slug: string;
+    title: string;
+    description: string;
+    years: string;
+    symbols: string[];
+    songs: string[];
+    themes: string[];
+    events: CompareEvent[];
+  }
+
+  const dataElement = document.getElementById('compare-data');
+  const compareData = JSON.parse(dataElement?.textContent ?? '[]') as CompareEra[];
+  const selectA = document.getElementById('compare-era-a') as HTMLSelectElement | null;
+  const selectB = document.getElementById('compare-era-b') as HTMLSelectElement | null;
+  const grid = document.getElementById('compare-grid');
+
+  const noData = 'Sin datos todavía';
+
+  const createText = (tag: string, className: string, text: string) => {
+    const element = document.createElement(tag);
+    element.className = className;
+    element.textContent = text;
+    return element;
+  };
+
+  const renderList = (items: string[]) => {
+    if (items.length === 0) {
+      return createText('p', 'text-sm text-on-surface-variant', noData);
+    }
+
+    const list = document.createElement('ul');
+    list.className = 'flex flex-wrap gap-2';
+
+    items.forEach((item) => {
+      const pill = document.createElement('li');
+      pill.className = 'rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-sm text-primary-light';
+      pill.textContent = item;
+      list.append(pill);
+    });
+
+    return list;
+  };
+
+  const renderEvents = (events: CompareEvent[]) => {
+    if (events.length === 0) {
+      return createText('p', 'text-sm text-on-surface-variant', noData);
+    }
+
+    const list = document.createElement('div');
+    list.className = 'space-y-3';
+
+    events.forEach((event) => {
+      const link = document.createElement('a');
+      link.href = event.href;
+      link.className = 'block rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:border-primary/35';
+      link.append(
+        createText('span', 'label-caps text-secondary-dim', event.date),
+        createText('p', 'mt-2 font-serif text-lg text-on-surface', event.title),
+      );
+      list.append(link);
+    });
+
+    return list;
+  };
+
+  const renderSection = (title: string, content: Node) => {
+    const section = document.createElement('section');
+    section.className = 'border-t border-border/50 pt-5';
+    section.append(createText('h3', 'mb-3 label-caps text-secondary-dim', title), content);
+    return section;
+  };
+
+  const renderEra = (era: CompareEra) => {
+    const card = document.createElement('article');
+    card.className = 'glass-card p-6 md:p-8';
+
+    const header = document.createElement('header');
+    header.className = 'mb-6';
+    header.append(
+      createText('p', 'label-caps text-primary-light', era.years),
+      createText('h2', 'mt-3 text-headline-md font-serif text-on-surface', era.title),
+    );
+
+    card.append(
+      header,
+      renderSection('Descripción', createText('p', 'text-sm leading-relaxed text-on-surface-variant md:text-base', era.description || noData)),
+      renderSection('Símbolos', renderList(era.symbols)),
+      renderSection('Canciones relacionadas', renderList(era.songs)),
+      renderSection('Temas narrativos', renderList(era.themes)),
+      renderSection('Eventos relacionados', renderEvents(era.events)),
+    );
+
+    return card;
+  };
+
+  const renderComparison = () => {
+    if (!grid || !selectA || !selectB) return;
+
+    const eraA = compareData.find((era) => era.slug === selectA.value);
+    const eraB = compareData.find((era) => era.slug === selectB.value);
+
+    grid.replaceChildren();
+
+    if (!eraA || !eraB) {
+      grid.append(createText('p', 'text-on-surface-variant', 'Selecciona dos eras para comparar.'));
+      return;
+    }
+
+    grid.append(renderEra(eraA), renderEra(eraB));
+  };
+
+  selectA?.addEventListener('change', renderComparison);
+  selectB?.addEventListener('change', renderComparison);
+  renderComparison();
+</script>

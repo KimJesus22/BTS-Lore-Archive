@@ -1,5 +1,6 @@
 ---
 import EmptyState from './EmptyState.astro';
+import LoadingState from './LoadingState.astro';
 import type { SearchResultsByGroup } from '../services/search.service';
 
 interface Props {
@@ -10,12 +11,25 @@ const { index } = Astro.props;
 const serializedIndex = JSON.stringify(index).replace(/</g, '\\u003c');
 ---
 
-<div id="search-initial-state">
+<div id="search-loading-state">
+  <LoadingState
+    title="Preparando resultados"
+    description="Estamos revisando el índice global del archivo."
+    cardCount={2}
+  />
+</div>
+
+<div id="search-initial-state" class="hidden">
   <EmptyState title="Busca en todo el archivo" description="Escribe una palabra, símbolo, miembro, era o concepto para explorar el BTS Lore Archive." />
 </div>
 
 <div id="search-empty-state" class="hidden">
-  <EmptyState title="No se encontraron resultados" description="Prueba con otro nombre, símbolo o concepto del lore." />
+  <EmptyState
+    title="No se encontraron resultados"
+    description="Prueba con otro nombre, símbolo o concepto del lore."
+    actionLabel="Ver glosario"
+    actionHref="/glossary"
+  />
 </div>
 
 <div id="search-results" class="hidden space-y-10"></div>
@@ -51,6 +65,7 @@ const serializedIndex = JSON.stringify(index).replace(/</g, '\\u003c');
       .replace(/[\u0300-\u036f]/g, '');
 
   const indexElement = document.getElementById('search-index');
+  const loadingState = document.getElementById('search-loading-state');
   const initialState = document.getElementById('search-initial-state');
   const emptyState = document.getElementById('search-empty-state');
   const resultsRoot = document.getElementById('search-results');
@@ -79,6 +94,7 @@ const serializedIndex = JSON.stringify(index).replace(/</g, '\\u003c');
     groupLabels.reduce((total, { key }) => total + groups[key].length, 0);
 
   const showOnly = (state: 'initial' | 'empty' | 'results') => {
+    loadingState?.classList.add('hidden');
     initialState?.classList.toggle('hidden', state !== 'initial');
     emptyState?.classList.toggle('hidden', state !== 'empty');
     resultsRoot?.classList.toggle('hidden', state !== 'results');

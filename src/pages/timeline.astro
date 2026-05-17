@@ -1,34 +1,150 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EmptyState from '../components/EmptyState.astro';
+import ErrorState from '../components/ErrorState.astro';
 import TimelineNode from '../components/TimelineNode.astro';
 import PageHeader from '../components/PageHeader.astro';
+import { getEras } from '../services/eras.service';
 import { getTimelineEvents } from '../services/timeline.service';
 
-const timelineEvents = await getTimelineEvents();
+let timelineEvents: Awaited<ReturnType<typeof getTimelineEvents>> = [];
+let eras: Awaited<ReturnType<typeof getEras>> = [];
+let loadError = false;
+
+try {
+  [timelineEvents, eras] = await Promise.all([
+    getTimelineEvents(),
+    getEras(),
+  ]);
+} catch (error) {
+  loadError = true;
+  console.error('No se pudo cargar la línea de tiempo', error);
+}
+
+const eraSlugById = new Map(eras.map((era) => [era.id, era.slug]));
+const filters = [
+  { label: 'Todas', value: 'all' },
+  { label: 'HYYH', value: 'hyyh' },
+  { label: 'Wings', value: 'wings' },
+  { label: 'Love Yourself', value: 'love-yourself' },
+  { label: 'Map of the Soul', value: 'map-of-the-soul' },
+  { label: 'BE', value: 'be' },
+  { label: 'Proof', value: 'proof' },
+  { label: 'Solos', value: 'solos' },
+];
 ---
 
-<BaseLayout title="Línea de Tiempo">
+<BaseLayout title="Línea de Tiempo" description="Recorre la cronología del universo narrativo de BTS y filtra eventos por era.">
   <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
-    <PageHeader 
-      tag="Registro Cronológico" 
-      title="Línea de Tiempo del Universo" 
-      description="Los eventos clave que definen la narrativa, ordenados cronológicamente desde el año 22." 
+    <PageHeader
+      tag="Registro Cronológico"
+      title="Línea de Tiempo del Universo"
+      description="Los eventos clave que definen la narrativa, ordenados cronológicamente desde el año 22."
     />
 
-    {timelineEvents.length > 0 ? (
-      <div class="max-w-4xl mx-auto space-y-12 md:space-y-14">
-        {timelineEvents.map((event) => (
-          <TimelineNode 
-            id={event.slug || event.id}
-            date={event.event_date || 'Sin fecha'}
-            title={event.title}
-            description={event.description}
-          />
-        ))}
-      </div>
+    {loadError ? (
+      <ErrorState
+        title="No pudimos cargar la cronología"
+        message="Hubo un problema al reunir los eventos y sus eras relacionadas. Vuelve al inicio o recarga la página."
+        actionLabel="Volver al inicio"
+        actionHref="/"
+      />
+    ) : timelineEvents.length > 0 ? (
+      <>
+        <section class="mx-auto mb-10 max-w-4xl">
+          <div class="glass-card p-4 md:p-5">
+            <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p class="label-caps text-primary-light">Filtrar por era</p>
+                <p id="timeline-count" class="mt-2 text-sm text-on-surface-variant">{timelineEvents.length} eventos visibles</p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2" aria-label="Filtros de cronología">
+              {filters.map((filter) => (
+                <button
+                  type="button"
+                  data-filter={filter.value}
+                  aria-pressed={filter.value === 'all' ? 'true' : 'false'}
+                  class={`timeline-filter rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                    filter.value === 'all'
+                      ? 'border-primary/50 bg-primary/20 text-primary-light'
+                      : 'border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-primary/35 hover:text-primary-light'
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <div id="timeline-empty-filter" class="mx-auto hidden max-w-4xl">
+          <EmptyState title="No hay eventos en esta era" description="Selecciona otra era o vuelve a Todas para continuar explorando la cronología." />
+        </div>
+
+        <div id="timeline-list" class="max-w-4xl mx-auto space-y-12 md:space-y-14">
+          {timelineEvents.map((event) => (
+            <TimelineNode
+              id={event.slug || event.id}
+              eraSlug={event.era_id ? eraSlugById.get(event.era_id) ?? 'sin-era' : 'sin-era'}
+              date={event.event_date || 'Sin fecha'}
+              title={event.title}
+              description={event.description}
+            />
+          ))}
+        </div>
+      </>
     ) : (
-      <EmptyState title="No hay eventos registrados" description="La línea de tiempo mostrará nuevos nodos cuando existan registros publicados." />
+      <EmptyState
+        title="No hay eventos registrados"
+        description="La línea de tiempo mostrará nuevos nodos cuando existan registros publicados."
+        actionLabel="Explorar eras"
+        actionHref="/eras"
+      />
     )}
   </div>
 </BaseLayout>
+
+<script>
+  const filterButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.timeline-filter'));
+  const events = Array.from(document.querySelectorAll<HTMLElement>('.timeline-event'));
+  const countLabel = document.getElementById('timeline-count');
+  const emptyState = document.getElementById('timeline-empty-filter');
+
+  const setActiveButton = (activeFilter: string) => {
+    filterButtons.forEach((button) => {
+      const isActive = button.dataset.filter === activeFilter;
+      button.setAttribute('aria-pressed', String(isActive));
+      button.classList.toggle('border-primary/50', isActive);
+      button.classList.toggle('bg-primary/20', isActive);
+      button.classList.toggle('text-primary-light', isActive);
+      button.classList.toggle('border-white/10', !isActive);
+      button.classList.toggle('bg-white/[0.03]', !isActive);
+      button.classList.toggle('text-on-surface-variant', !isActive);
+    });
+  };
+
+  const applyFilter = (filter: string) => {
+    let visibleCount = 0;
+
+    events.forEach((event) => {
+      const shouldShow = filter === 'all' || event.dataset.era === filter;
+      event.classList.toggle('hidden', !shouldShow);
+      if (shouldShow) visibleCount += 1;
+    });
+
+    if (countLabel) {
+      countLabel.textContent = `${visibleCount} evento${visibleCount === 1 ? '' : 's'} visible${visibleCount === 1 ? '' : 's'}`;
+    }
+
+    emptyState?.classList.toggle('hidden', visibleCount > 0);
+    setActiveButton(filter);
+  };
+
+  filterButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      applyFilter(button.dataset.filter ?? 'all');
+    });
+  });
+</script>

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EmptyState from '../components/EmptyState.astro';
+import LoadingState from '../components/LoadingState.astro';
 import PageHeader from '../components/PageHeader.astro';
 ---
 
@@ -13,8 +14,21 @@ import PageHeader from '../components/PageHeader.astro';
       align="left"
     />
 
-    <div id="favorites-empty">
-      <EmptyState title="No hay favoritos guardados" description="Guarda eras, teorías o términos del glosario para encontrarlos aquí más tarde." />
+    <div id="favorites-loading">
+      <LoadingState
+        title="Cargando favoritos"
+        description="Estamos revisando los registros guardados en este navegador."
+        cardCount={2}
+      />
+    </div>
+
+    <div id="favorites-empty" class="hidden">
+      <EmptyState
+        title="No hay favoritos guardados"
+        description="Guarda eras, teorías o términos del glosario para encontrarlos aquí más tarde."
+        actionLabel="Explorar archivo"
+        actionHref="/"
+      />
     </div>
 
     <div id="favorites-results" class="hidden space-y-10"></div>
@@ -33,6 +47,7 @@ import PageHeader from '../components/PageHeader.astro';
   }
 
   const storageKey = 'bts-lore-favorites';
+  const loadingState = document.getElementById('favorites-loading');
   const emptyState = document.getElementById('favorites-empty');
   const resultsRoot = document.getElementById('favorites-results');
   const groups: Array<{ type: FavoriteType; title: string }> = [
@@ -71,6 +86,7 @@ import PageHeader from '../components/PageHeader.astro';
   const renderFavorites = () => {
     const favorites = readFavorites();
 
+    loadingState?.classList.add('hidden');
     emptyState?.classList.toggle('hidden', favorites.length > 0);
     resultsRoot?.classList.toggle('hidden', favorites.length === 0);
     resultsRoot?.replaceChildren();

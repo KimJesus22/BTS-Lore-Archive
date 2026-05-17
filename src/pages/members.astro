@@ -1,9 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import EmptyState from '../components/EmptyState.astro';
+import ErrorState from '../components/ErrorState.astro';
 import PageHeader from '../components/PageHeader.astro';
 import { getMembers } from '../services/members.service';
 
-const members = await getMembers();
+let members: Awaited<ReturnType<typeof getMembers>> = [];
+let loadError = false;
+
+try {
+  members = await getMembers();
+} catch (error) {
+  loadError = true;
+  console.error('No se pudieron cargar los miembros', error);
+}
 
 const formatSymbols = (symbols?: string[]) => {
   if (!symbols || symbols.length === 0) return 'Símbolos por clasificar';
@@ -11,26 +21,42 @@ const formatSymbols = (symbols?: string[]) => {
 };
 ---
 
-<BaseLayout title="Miembros">
+<BaseLayout title="Miembros" description="Consulta los perfiles de los siete miembros dentro del universo narrativo de BTS Lore Archive.">
   <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
-    <PageHeader 
-      tag="Perfiles" 
-      title="Los Siete" 
-      description="Los protagonistas de esta historia entrelazada. Cada uno lleva una carga diferente y un rol esencial en la búsqueda de la salvación mutua." 
+    <PageHeader
+      tag="Perfiles"
+      title="Los Siete"
+      description="Los protagonistas de esta historia entrelazada. Cada uno lleva una carga diferente y un rol esencial en la búsqueda de la salvación mutua."
     />
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {members.map((member, i) => (
-        <div id={member.slug} class="glass-card scroll-mt-28 p-8 text-center group">
-          <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/30 to-secondary-dim/10 border border-primary/20 flex items-center justify-center overflow-hidden relative">
-             <div class="absolute inset-0 opacity-50 bg-gradient-to-tr from-transparent via-white/10 to-transparent group-hover:via-white/30 transition-all duration-700" style={`transition-delay: ${i * 100}ms`}></div>
-             <span class="font-serif text-2xl text-white/50">{member.name.charAt(0)}</span>
+    {loadError ? (
+      <ErrorState
+        title="No pudimos cargar los miembros"
+        message="La información de perfiles no está disponible en este momento. Vuelve al inicio o recarga la página."
+        actionLabel="Volver al inicio"
+        actionHref="/"
+      />
+    ) : members.length > 0 ? (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {members.map((member, i) => (
+          <div id={member.slug} class="glass-card scroll-mt-28 p-8 text-center group">
+            <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/30 to-secondary-dim/10 border border-primary/20 flex items-center justify-center overflow-hidden relative">
+              <div class="absolute inset-0 opacity-50 bg-gradient-to-tr from-transparent via-white/10 to-transparent group-hover:via-white/30 transition-all duration-700" style={`transition-delay: ${i * 100}ms`}></div>
+              <span class="font-serif text-2xl text-white/50">{member.name.charAt(0)}</span>
+            </div>
+            <h3 class="font-serif text-xl font-bold text-on-surface mb-1">{member.name}</h3>
+            <span class="block label-caps text-secondary-dim mb-4">{member.lore_role}</span>
+            <p class="text-sm font-sans text-on-surface-variant">{formatSymbols(member.symbols)}</p>
           </div>
-          <h3 class="font-serif text-xl font-bold text-on-surface mb-1">{member.name}</h3>
-          <span class="block label-caps text-secondary-dim mb-4">{member.lore_role}</span>
-          <p class="text-sm font-sans text-on-surface-variant">{formatSymbols(member.symbols)}</p>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    ) : (
+      <EmptyState
+        title="No hay miembros registrados"
+        description="Los perfiles aparecerán aquí cuando existan registros disponibles."
+        actionLabel="Explorar archivo"
+        actionHref="/"
+      />
+    )}
   </div>
 </BaseLayout>

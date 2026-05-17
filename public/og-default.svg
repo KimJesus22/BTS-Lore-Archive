@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">BTS Lore Archive</title>
+  <desc id="desc">Imagen social del archivo oscuro de lore de BTS.</desc>
+  <rect width="1200" height="630" fill="#0c0f10"/>
+  <circle cx="230" cy="160" r="220" fill="#6d28d9" opacity="0.24"/>
+  <circle cx="970" cy="500" r="240" fill="#e9c349" opacity="0.16"/>
+  <rect x="72" y="72" width="1056" height="486" rx="28" fill="#ffffff" opacity="0.055" stroke="#ffffff" stroke-opacity="0.14"/>
+  <text x="120" y="250" fill="#d3bbff" font-family="Georgia, serif" font-size="54" font-weight="700">BTS Lore Archive</text>
+  <text x="120" y="325" fill="#f8f4ff" font-family="Arial, sans-serif" font-size="28">Eras, teorías, cronología y símbolos</text>
+  <text x="120" y="385" fill="#aeb7bd" font-family="Arial, sans-serif" font-size="24">Archivo narrativo en español</text>
+  <path d="M120 455h320" stroke="#e9c349" stroke-width="4" stroke-linecap="round" opacity="0.82"/>
+</svg>

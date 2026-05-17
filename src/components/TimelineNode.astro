@@ -4,12 +4,13 @@ interface Props {
   title: string;
   description: string;
   id?: string;
+  eraSlug?: string;
 }
 
-const { date, title, description, id } = Astro.props;
+const { date, title, description, id, eraSlug = 'sin-era' } = Astro.props;
 ---
 
-<div id={id} class="relative scroll-mt-28 pl-10 md:pl-0">
+<div id={id} data-era={eraSlug} class="timeline-event relative scroll-mt-28 pl-10 md:pl-0">
   <div class="md:grid md:grid-cols-5 md:gap-8 items-start">
     <div class="md:col-span-1 md:text-right mb-2 md:mb-0 pt-1">
       <span class="inline-flex rounded-full border border-secondary-dim/30 bg-secondary-dim/10 px-3 py-1.5 label-caps text-secondary-dim shadow-[0_0_18px_rgba(233,195,73,0.12)]">{date}</span>

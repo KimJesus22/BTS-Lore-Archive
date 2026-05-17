@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import FavoriteButton from '../../components/FavoriteButton.astro';
+import PersonalNotes from '../../components/PersonalNotes.astro';
 import TimelineNode from '../../components/TimelineNode.astro';
 import { getEras } from '../../services/eras.service';
 import type { Era } from '../../types/content';
@@ -21,9 +22,10 @@ interface Props {
 
 const { era } = Astro.props;
 const eraState = era.end_year ? 'Completado' : 'Activo';
+const metaDescription = era.description.length > 155 ? `${era.description.slice(0, 155).trim()}...` : era.description;
 ---
 
-<BaseLayout title={era.title}>
+<BaseLayout title={era.title} description={metaDescription} canonical={`/eras/${era.id}`}>
   <article class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
     
     <header class="mb-16 pb-8 border-b border-border/50">
@@ -79,6 +81,10 @@ const eraState = era.end_year ? 'Completado' : 'Activo';
           <p class="text-sm text-on-surface-variant font-sans">Registros dispersos que documentan los pensamientos de cada miembro.</p>
         </div>
       </div>
+    </div>
+
+    <div class="mt-14">
+      <PersonalNotes contentType="era" contentSlug={era.slug} title={era.title} href={`/eras/${era.id}`} />
     </div>
     
   </article>
