@@ -12,12 +12,12 @@ Dentro del proyecto, encontrarás la siguiente estructura de directorios y archi
 /
 ├── public/                 # Archivos estáticos como imágenes y favicons
 ├── src/
-│   ├── components/         # Componentes UI reutilizables (Card, Button, TimelineNode, PageHeader)
+│   ├── components/         # Componentes UI reutilizables y subcarpeta admin/ con formularios de creación
 │   ├── data/               # Datos de prueba (mock) estructurados por dominio (eras, members, etc.)
 │   ├── layouts/            # Plantillas maestras (BaseLayout) con fuentes y estilos base globales
 │   ├── lib/                # Configuración de clientes externos (ej. insforge.ts)
 │   ├── pages/              # Rutas de navegación (file-based routing de Astro)
-│   ├── services/           # Lógica de negocio y fetching a InsForge con fallback a mocks
+│   ├── services/           # Lógica de negocio, lectura y escritura a InsForge con fallback de lectura a mocks
 │   ├── styles/             # Archivos CSS globales (global.css con utilidades de Tailwind)
 │   └── types/              # Definiciones y contratos de TypeScript (content.ts)
 ├── .env                    # Variables de entorno (PUBLIC_INSFORGE_URL, PUBLIC_INSFORGE_ANON_KEY)
@@ -51,7 +51,7 @@ Todos los comandos se ejecutan desde la raíz del proyecto usando `pnpm 11`:
 
 ## 🔮 Fase de Desarrollo Actual
 
-El proyecto se encuentra en la **Fase 2 (Integración Backend)**. 
-- **Conexión a Datos:** Las rutas de la aplicación están conectadas a una capa de servicios (`src/services/`) que consultan tablas reales en **InsForge**.
-- **Sistema de Fallback:** En caso de que la conexión falle, o las tablas en producción estén vacías, el sistema automáticamente usa los datos de prueba (`src/data/`) de forma transparente para evitar que el sitio colapse.
-- **Pendiente:** Funcionalidad real de inicio de sesión y panel de administración para insertar registros desde la UI.
+El proyecto se encuentra en la **Fase 3 (Creación y Escritura en Backend)**. 
+- **Lectura Resiliente:** Las rutas de la aplicación consumen datos de la capa de servicios (`src/services/`) que consultan tablas en **InsForge**, con un sistema transparente de fallback a datos locales (`src/data/`) si la conexión falla o las tablas están vacías.
+- **Escritura Directa:** El panel `/admin` cuenta con 4 formularios funcionales (`EraForm`, `TimelineForm`, `TheoryForm`, `GlossaryForm`) en el lado del cliente (Client-side JS). Los datos se validan, se autogeneran sus UUIDs y se guardan directamente en **InsForge**.
+- **Pendiente:** Implementar el flujo de autenticación real (login) para proteger el panel `/admin`, el cual actualmente simula su seguridad mediante comentarios guía `// TODO: SEGURIDAD` en las mutaciones de los servicios.
