@@ -1,0 +1,29 @@
+---
+import { navigation } from '../data/navigation';
+---
+
+<header class="sticky top-0 z-50 w-full bg-surface/50 backdrop-blur-md border-b border-border">
+  <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop h-20 flex items-center justify-between">
+    <div class="flex-shrink-0">
+      <a href="/" class="font-serif text-2xl font-bold text-on-surface">
+        Cosmic<span class="text-primary-light">Archive</span>
+      </a>
+    </div>
+    
+    <nav class="hidden md:flex gap-8">
+      {navigation.map((item) => (
+        <a href={item.href} class="text-on-surface-variant hover:text-primary-light transition-colors font-sans text-sm tracking-wide">
+          {item.name}
+        </a>
+      ))}
+    </nav>
+
+    <div class="md:hidden">
+      <button class="text-on-surface-variant hover:text-white" aria-label="Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>

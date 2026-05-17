@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TimelineNode from '../../components/TimelineNode.astro';
+import { mockEras } from '../../data/eras';
+
+export function getStaticPaths() {
+  return mockEras.map((era) => {
+    return {
+      params: { id: era.id },
+      props: { era },
+    };
+  });
+}
+
+const { era } = Astro.props;
+---
+
+<BaseLayout title={era.title}>
+  <article class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    
+    <header class="mb-16 pb-8 border-b border-border/50">
+      <div class="flex items-center gap-4 mb-6">
+        <a href="/eras" class="text-on-surface-variant hover:text-primary-light transition-colors flex items-center text-sm font-semibold">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          Volver a Eras
+        </a>
+      </div>
+
+      <span class="inline-block label-caps text-secondary-dim mb-4 border border-secondary-dim/30 px-3 py-1 rounded-full">{era.year} • {era.status}</span>
+      <h1 class="text-display-lg-mobile md:text-display-lg font-serif font-bold text-on-surface mb-6 leading-tight">{era.title}</h1>
+      <p class="text-body-md md:text-body-lg text-on-surface-variant max-w-3xl leading-relaxed">{era.description}</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-16">
+      <div class="lg:col-span-2">
+        <h2 class="text-headline-md font-serif text-on-surface mb-8">Eventos Clave</h2>
+        <div class="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
+          {/* Mock events for this specific era view */}
+          <TimelineNode date="Primavera" title="El Inicio" description="Los siete se encuentran por primera vez en el salón de clases vacío que convirtieron en su refugio." />
+          <TimelineNode date="Verano" title="El Viaje al Mar" description="Bajo el sol de verano, deciden hacer un viaje improvisado hacia el mar, buscando un respiro de la realidad." />
+          <TimelineNode date="Otoño" title="La Separación" description="Conflictos internos y presiones externas fuerzan al grupo a separarse, iniciando un periodo de soledad y oscuridad." />
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <h3 class="text-headline-md font-serif text-on-surface mb-4">Artefactos</h3>
+        <div class="glass-card p-6">
+          <div class="w-12 h-12 bg-primary/20 rounded-full mb-4 border border-primary/30 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-primary-light">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+            </svg>
+          </div>
+          <h4 class="font-bold text-on-surface mb-2">Las Notas</h4>
+          <p class="text-sm text-on-surface-variant font-sans">Registros dispersos que documentan los pensamientos de cada miembro.</p>
+        </div>
+      </div>
+    </div>
+    
+  </article>
+</BaseLayout>

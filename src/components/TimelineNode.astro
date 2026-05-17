@@ -1,0 +1,28 @@
+---
+interface Props {
+  date: string;
+  title: string;
+  description: string;
+}
+
+const { date, title, description } = Astro.props;
+---
+
+<div class="relative pl-8 md:pl-0">
+  <div class="md:grid md:grid-cols-5 md:gap-8 items-start">
+    <div class="md:col-span-1 md:text-right mb-2 md:mb-0 pt-1">
+      <span class="label-caps text-secondary-dim">{date}</span>
+    </div>
+    
+    <div class="hidden md:block absolute left-[20%] w-[1px] h-full bg-border -translate-x-1/2 top-0"></div>
+    <div class="hidden md:block absolute left-[20%] w-3 h-3 bg-primary rounded-full -translate-x-1/2 top-1.5 shadow-[0_0_10px_rgba(109,40,217,0.8)]"></div>
+    
+    <div class="md:hidden absolute left-0 w-[1px] h-full bg-border top-0"></div>
+    <div class="md:hidden absolute left-[-5px] w-3 h-3 bg-primary rounded-full top-1.5 shadow-[0_0_10px_rgba(109,40,217,0.8)]"></div>
+
+    <div class="md:col-span-4 glass-card p-6 pb-8">
+      <h3 class="font-serif text-xl font-bold text-on-surface mb-2">{title}</h3>
+      <p class="text-on-surface-variant font-sans text-sm leading-relaxed">{description}</p>
+    </div>
+  </div>
+</div>

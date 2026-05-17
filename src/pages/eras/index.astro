@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Card from '../../components/Card.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { mockEras } from '../../data/eras';
+---
+
+<BaseLayout title="Eras">
+  <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader 
+      tag="Crónicas" 
+      title="Todas las Eras" 
+      description="Explora la evolución de la narrativa a lo largo de las distintas eras. Cada periodo marca un nuevo capítulo en la historia." 
+      align="left"
+    />
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {mockEras.map((era) => (
+        <Card 
+          title={era.title}
+          description={era.description}
+          tag={era.year}
+          href={`/eras/${era.id}`}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>

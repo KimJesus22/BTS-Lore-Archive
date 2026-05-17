@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Card from '../components/Card.astro';
+import { mockTheories } from '../data/theories';
+import PageHeader from '../components/PageHeader.astro';
+---
+
+<BaseLayout title="Teorías">
+  <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader 
+      tag="Comunidad" 
+      title="Teorías del Lore" 
+      description="Explora las diferentes interpretaciones, simbolismos y conexiones ocultas descubiertas y debatidas por la comunidad a lo largo de los años." 
+    />
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {mockTheories.map((theory) => (
+        <Card 
+          title={theory.title}
+          description={theory.description}
+          tag={theory.difficulty}
+          href="javascript:void(0)"
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>

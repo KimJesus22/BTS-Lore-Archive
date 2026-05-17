@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdminStatCard from '../../components/AdminStatCard.astro';
+---
+
+<BaseLayout title="Admin Dashboard">
+  <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    
+    <header class="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div>
+        <h1 class="text-headline-lg font-serif font-bold text-on-surface mb-2">Panel de Control</h1>
+        <p class="text-on-surface-variant text-sm font-sans">Gestión del contenido del archivo y base de datos (Vista Mock)</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="label-caps text-primary-light bg-primary/10 border border-primary/30 px-3 py-1 rounded-full">Modo de Prueba</span>
+        <button class="bg-surface-bright text-on-surface px-6 py-2 rounded-lg text-sm font-semibold hover:bg-surface-variant transition-colors border border-border">
+          Cerrar Sesión
+        </button>
+      </div>
+    </header>
+
+    {/* Metrics Grid */}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <AdminStatCard title="Total de Eras" value="4" />
+      <AdminStatCard title="Eventos de Línea de Tiempo" value="128" />
+      <AdminStatCard title="Teorías Aprobadas" value="42" />
+      <AdminStatCard title="Tráfico (Últimos 30d)" value="14.2K" highlight={true} />
+    </div>
+
+    {/* Content Management Area */}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="lg:col-span-2 glass-card p-8">
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-border/50">
+          <h2 class="text-xl font-serif text-on-surface">Actividad Reciente</h2>
+          <button class="text-sm text-primary-light hover:text-white transition-colors">Ver todo</button>
+        </div>
+        
+        <div class="space-y-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-2 h-2 rounded-full bg-secondary-dim shadow-[0_0_8px_#e9c349]"></div>
+              <div>
+                <p class="text-on-surface font-semibold text-sm">Nueva teoría enviada: "Omerlás y la estación nevada"</p>
+                <p class="text-on-surface-variant text-xs">Por ARMY_LORE hace 2 horas</p>
+              </div>
+            </div>
+            <button class="text-xs bg-white/5 hover:bg-white/10 px-3 py-1 rounded border border-white/10 transition-colors">Revisar</button>
+          </div>
+          
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-2 h-2 rounded-full bg-primary-light shadow-[0_0_8px_#d3bbff]"></div>
+              <div>
+                <p class="text-on-surface font-semibold text-sm">Evento de línea de tiempo actualizado</p>
+                <p class="text-on-surface-variant text-xs">Sistema hace 5 horas</p>
+              </div>
+            </div>
+            <span class="text-xs text-on-surface-variant">Aprobado</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <h2 class="text-xl font-serif text-on-surface mb-4">Acciones Rápidas</h2>
+        <button class="w-full text-left glass-card p-4 hover:border-primary/50 transition-colors group">
+          <span class="block text-primary-light font-semibold mb-1 group-hover:text-white transition-colors">+ Añadir Nueva Era</span>
+          <span class="block text-xs text-on-surface-variant">Crear un nuevo arco narrativo</span>
+        </button>
+        <button class="w-full text-left glass-card p-4 hover:border-secondary-dim/50 transition-colors group">
+          <span class="block text-secondary-dim font-semibold mb-1 group-hover:text-white transition-colors">+ Registrar Evento</span>
+          <span class="block text-xs text-on-surface-variant">Añadir nodo a la línea de tiempo</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</BaseLayout>

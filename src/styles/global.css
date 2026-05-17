@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface antialiased;
+    background-image: radial-gradient(circle at top right, #1d2021, transparent 40%),
+                      radial-gradient(circle at bottom left, #0c0f10, transparent 40%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif font-bold text-on-surface tracking-tight;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+    @apply hover:bg-white/10 hover:border-primary/30 transition-all duration-300;
+  }
+
+  .label-caps {
+    @apply font-mono text-xs font-bold uppercase tracking-widest text-on-surface-variant;
+  }
+}

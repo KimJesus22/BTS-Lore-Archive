@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import Card from '../components/Card.astro';
+import { mockEras } from '../data/eras';
+---
+
+<BaseLayout title="Inicio">
+  {/* Hero Section */}
+  <section class="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
+    {/* Decorative background elements */}
+    <div class="absolute inset-0 z-0">
+      <div class="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen"></div>
+      <div class="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-secondary-dim/10 rounded-full blur-[150px] mix-blend-screen"></div>
+    </div>
+
+    <div class="relative z-10 text-center max-w-4xl px-margin-mobile md:px-margin-desktop mx-auto">
+      <span class="inline-block label-caps text-primary-light mb-6 tracking-[0.2em]">El Universo Narrativo</span>
+      <h1 class="text-display-lg-mobile md:text-display-lg font-serif font-bold text-on-surface mb-8 leading-tight">
+        Explora el <br class="hidden md:block" />
+        <span class="text-transparent bg-clip-text bg-gradient-primary">Universo de BTS</span>
+      </h1>
+      <p class="text-body-md md:text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-12">
+        Un archivo exhaustivo que documenta las líneas de tiempo entrelazadas, los personajes y los temas recurrentes a través del momento más hermoso de la vida y más allá.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <Button href="/timeline" variant="primary">Entrar a la Línea de Tiempo</Button>
+        <Button href="/eras" variant="secondary">Explorar Eras</Button>
+      </div>
+    </div>
+  </section>
+
+  {/* Eras Section */}
+  <section class="py-stack-lg border-t border-border/50 relative z-10 bg-surface-dim/50 backdrop-blur-sm">
+    <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop">
+      <div class="flex items-end justify-between mb-12">
+        <div>
+          <h2 class="text-headline-md md:text-headline-lg font-serif text-on-surface mb-4">Crónicas</h2>
+          <p class="text-on-surface-variant max-w-xl">Descubre las historias que dan forma al universo, divididas en distintas eras narrativas.</p>
+        </div>
+        <a href="/eras" class="hidden md:flex items-center text-primary-light hover:text-white transition-colors">
+          Ver todas
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 ml-2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {mockEras.map((era) => (
+          <Card 
+            title={era.title}
+            description={era.description}
+            tag={era.year}
+            href={`/eras/${era.id}`}
+          />
+        ))}
+      </div>
+      
+      <div class="mt-8 text-center md:hidden">
+        <Button href="/eras" variant="ghost" class="w-full">Ver todas las eras</Button>
+      </div>
+    </div>
+  </section>
+
+  {/* Discover Section */}
+  <section class="py-stack-lg relative z-10">
+    <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop">
+      <div class="glass-card p-8 md:p-16 text-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent"></div>
+        <div class="relative z-10">
+          <h2 class="text-headline-md md:text-headline-lg font-serif text-on-surface mb-6">Desentraña el Misterio</h2>
+          <p class="text-on-surface-variant max-w-2xl mx-auto mb-10">
+            Desde la flor Smeraldo hasta la tienda mágica (Magic Shop), sumérgete profundamente en el simbolismo y las teorías construidas por la comunidad.
+          </p>
+          <Button href="/theories" variant="primary">Leer Teorías</Button>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

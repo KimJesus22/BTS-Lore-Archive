@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { mockGlossary } from '../data/glossary';
+import PageHeader from '../components/PageHeader.astro';
+---
+
+<BaseLayout title="Glosario">
+  <div class="max-w-[800px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader 
+      tag="Archivo" 
+      title="Glosario de Términos" 
+      description="Definiciones clave y conceptos recurrentes dentro del universo narrativo para ayudar a la comprensión de la historia." 
+      align="left"
+    />
+
+    <div class="space-y-8">
+      {mockGlossary.map((item) => (
+        <div class="glass-card p-6 md:p-8">
+          <div class="flex items-center gap-4 mb-4">
+            <h2 class="text-2xl font-serif font-bold text-on-surface">{item.term}</h2>
+            {item.contraction && (
+              <span class="label-caps text-secondary-dim bg-secondary-dim/10 px-2 py-1 rounded border border-secondary-dim/20">
+                {item.contraction}
+              </span>
+            )}
+          </div>
+          <p class="text-on-surface-variant font-sans leading-relaxed text-lg">
+            {item.definition}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+</BaseLayout>

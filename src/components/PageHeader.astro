@@ -1,0 +1,18 @@
+---
+interface Props {
+  tag: string;
+  title: string;
+  description: string;
+  align?: 'left' | 'center';
+}
+
+const { tag, title, description, align = 'center' } = Astro.props;
+---
+
+<header class={`mb-16 ${align === 'center' ? 'text-center' : 'text-left'}`}>
+  <span class="inline-block label-caps text-primary-light mb-4 tracking-[0.2em]">{tag}</span>
+  <h1 class="text-display-lg-mobile md:text-display-lg font-serif font-bold text-on-surface mb-6">{title}</h1>
+  <p class={`text-body-md md:text-body-lg text-on-surface-variant max-w-2xl ${align === 'center' ? 'mx-auto' : ''}`}>
+    {description}
+  </p>
+</header>

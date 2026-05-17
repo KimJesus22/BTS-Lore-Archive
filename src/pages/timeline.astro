@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TimelineNode from '../components/TimelineNode.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { mockTimelineEvents } from '../data/timeline';
+---
+
+<BaseLayout title="Línea de Tiempo">
+  <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader 
+      tag="Registro Cronológico" 
+      title="Línea de Tiempo del Universo" 
+      description="Los eventos clave que definen la narrativa, ordenados cronológicamente desde el año 22." 
+    />
+
+    <div class="max-w-4xl mx-auto relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent space-y-12">
+      {mockTimelineEvents.map((event) => (
+        <TimelineNode 
+          date={event.date}
+          title={event.title}
+          description={event.description}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>
