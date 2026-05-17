@@ -24,3 +24,17 @@ export const getTheories = async (): Promise<Theory[]> => {
     return mockTheories;
   }
 };
+
+export const createTheory = async (theory: Omit<Theory, 'created_at' | 'updated_at'>) => {
+  // TODO: SEGURIDAD - Validar sesión de usuario para crear teorías.
+  const { data, error } = await insforge.database
+    .from('theories')
+    .insert([theory])
+    .select();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+};

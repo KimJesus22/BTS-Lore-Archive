@@ -1,0 +1,63 @@
+---
+// TimelineForm.astro
+---
+<div class="glass-card p-6">
+  <h3 class="font-serif text-xl text-on-surface mb-4">Registrar Evento</h3>
+  <form id="timeline-form" class="space-y-4">
+    <div>
+      <label class="block text-sm text-on-surface-variant mb-1">Título del Evento</label>
+      <input type="text" name="title" required class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface" />
+    </div>
+    <div>
+      <label class="block text-sm text-on-surface-variant mb-1">Fecha (Texto, ej: Año 22, 11 Abril)</label>
+      <input type="text" name="event_date" required class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface" />
+    </div>
+    <div>
+      <label class="block text-sm text-on-surface-variant mb-1">Descripción</label>
+      <textarea name="description" required rows="3" class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface"></textarea>
+    </div>
+    <button type="submit" class="bg-secondary-dim text-on-surface px-4 py-2 rounded font-semibold w-full hover:opacity-80 transition-opacity">
+      Añadir a Línea de Tiempo
+    </button>
+    <p id="tl-msg" class="text-sm text-center hidden mt-2"></p>
+  </form>
+</div>
+
+<script>
+  import { createTimelineEvent } from '../../services/timeline.service';
+
+  const form = document.getElementById('timeline-form') as HTMLFormElement;
+  const msg = document.getElementById('tl-msg');
+
+  if (form && msg) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const title = formData.get('title') as string;
+      
+      const newEvent = {
+        id: crypto.randomUUID(),
+        title,
+        slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
+        event_date: formData.get('event_date') as string,
+        description: formData.get('description') as string,
+        order_index: 0
+      };
+
+      try {
+        msg.textContent = 'Guardando...';
+        msg.className = 'text-sm text-center mt-2 text-on-surface-variant block';
+        
+        await createTimelineEvent(newEvent);
+        
+        msg.textContent = '¡Evento registrado!';
+        msg.className = 'text-sm text-center mt-2 text-secondary-dim block';
+        form.reset();
+      } catch (err) {
+        console.error(err);
+        msg.textContent = 'Error al guardar. Revisa la consola.';
+        msg.className = 'text-sm text-center mt-2 text-red-400 block';
+      }
+    });
+  }
+</script>

@@ -1,0 +1,76 @@
+---
+// TheoryForm.astro
+---
+<div class="glass-card p-6">
+  <h3 class="font-serif text-xl text-on-surface mb-4">Nueva Teoría</h3>
+  <form id="theory-form" class="space-y-4">
+    <div>
+      <label class="block text-sm text-on-surface-variant mb-1">Título de la Teoría</label>
+      <input type="text" name="title" required class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface" />
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm text-on-surface-variant mb-1">Autor / Fuente</label>
+        <input type="text" name="author" required class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface" />
+      </div>
+      <div>
+        <label class="block text-sm text-on-surface-variant mb-1">Dificultad (Tag)</label>
+        <select name="tag" class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface">
+          <option value="Básico">Básico</option>
+          <option value="Intermedio">Intermedio</option>
+          <option value="Avanzado">Avanzado</option>
+          <option value="Experto">Experto</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm text-on-surface-variant mb-1">Contenido</label>
+      <textarea name="content" required rows="4" class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface"></textarea>
+    </div>
+    <button type="submit" class="bg-surface-bright border border-border text-on-surface px-4 py-2 rounded font-semibold w-full hover:bg-surface-variant transition-colors">
+      Publicar Teoría
+    </button>
+    <p id="theory-msg" class="text-sm text-center hidden mt-2"></p>
+  </form>
+</div>
+
+<script>
+  import { createTheory } from '../../services/theories.service';
+
+  const form = document.getElementById('theory-form') as HTMLFormElement;
+  const msg = document.getElementById('theory-msg');
+
+  if (form && msg) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const title = formData.get('title') as string;
+      const tag = formData.get('tag') as string;
+      
+      const newTheory = {
+        id: crypto.randomUUID(),
+        title,
+        slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
+        author: formData.get('author') as string,
+        content: formData.get('content') as string,
+        tags: [tag],
+        status: 'published'
+      };
+
+      try {
+        msg.textContent = 'Guardando...';
+        msg.className = 'text-sm text-center mt-2 text-on-surface-variant block';
+        
+        await createTheory(newTheory);
+        
+        msg.textContent = '¡Teoría publicada!';
+        msg.className = 'text-sm text-center mt-2 text-primary-light block';
+        form.reset();
+      } catch (err) {
+        console.error(err);
+        msg.textContent = 'Error al guardar. Revisa la consola.';
+        msg.className = 'text-sm text-center mt-2 text-red-400 block';
+      }
+    });
+  }
+</script>

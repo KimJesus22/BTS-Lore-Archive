@@ -24,3 +24,17 @@ export const getTimelineEvents = async (): Promise<TimelineEvent[]> => {
     return mockTimelineEvents;
   }
 };
+
+export const createTimelineEvent = async (event: Omit<TimelineEvent, 'created_at'>) => {
+  // TODO: SEGURIDAD - Validar permisos de admin.
+  const { data, error } = await insforge.database
+    .from('timeline_events')
+    .insert([event])
+    .select();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+};

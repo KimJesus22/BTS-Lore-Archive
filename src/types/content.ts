@@ -1,37 +1,58 @@
 export interface Era {
   id: string;
   title: string;
-  year: string;
+  slug: string;
   description: string;
-  status: 'Completado' | 'En Progreso' | 'Archivado';
+  cover_image_url?: string;
+  start_year?: number;
+  end_year?: number;
+  order_index: number;
+  created_at: string;
 }
 
 export interface TimelineEvent {
   id: string;
-  date: string;
+  era_id?: string;
   title: string;
+  slug?: string;
+  event_date?: string;
   description: string;
+  source_type?: string;
+  source_url?: string;
+  order_index: number;
+  created_at: string;
 }
 
 export interface Member {
   id: string;
   name: string;
-  role: string;
-  quote: string;
+  stage_name: string;
+  slug: string;
+  profile_image_url?: string;
+  lore_role?: string;
+  symbols?: string[];
+  created_at: string;
 }
 
 export interface Theory {
   id: string;
   title: string;
-  author: string;
-  difficulty: 'Avanzado' | 'Intermedio' | 'Experto' | 'Básico';
-  description: string;
+  slug: string;
+  content: string;
+  status: string;
+  tags?: string[];
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface GlossaryTerm {
+  id: string;
   term: string;
-  contraction?: string;
+  slug: string;
   definition: string;
+  category?: string;
+  related_terms?: string[];
+  created_at: string;
 }
 
 export interface NavigationItem {

@@ -35,8 +35,12 @@ const { era } = Astro.props;
         </a>
       </div>
 
-      <span class="inline-block label-caps text-secondary-dim mb-4 border border-secondary-dim/30 px-3 py-1 rounded-full">{era.year} • {era.status}</span>
-      <h1 class="text-display-lg-mobile md:text-display-lg font-serif font-bold text-on-surface mb-6 leading-tight">{era.title}</h1>
+      <h1 class="text-display-lg-mobile md:text-display-lg font-serif font-bold text-on-surface mb-4">{era.title}</h1>
+      <div class="flex items-center gap-4 text-primary-light label-caps mb-6">
+        <span>{era.start_year} - {era.end_year || 'Presente'}</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-secondary-dim"></span>
+        <span>{era.status === 'Archivado' ? 'Completado' : era.status || 'Activo'}</span>
+      </div>
       <p class="text-body-md md:text-body-lg text-on-surface-variant max-w-3xl leading-relaxed">{era.description}</p>
     </header>
 

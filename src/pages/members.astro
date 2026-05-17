@@ -22,8 +22,8 @@ const members = await getMembers();
              <span class="font-serif text-2xl text-white/50">{member.name.charAt(0)}</span>
           </div>
           <h3 class="font-serif text-xl font-bold text-on-surface mb-1">{member.name}</h3>
-          <span class="block label-caps text-secondary-dim mb-4">{member.role}</span>
-          <p class="text-sm font-sans italic text-on-surface-variant">"{member.quote}"</p>
+          <span class="block label-caps text-secondary-dim mb-4">{member.lore_role}</span>
+          <p class="text-sm font-sans italic text-on-surface-variant">"{member.quote || '...'}"</p>
         </div>
       ))}
     </div>

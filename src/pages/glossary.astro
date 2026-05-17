@@ -20,9 +20,9 @@ const glossary = await getGlossaryTerms();
         <div class="glass-card p-6 md:p-8">
           <div class="flex items-center gap-4 mb-4">
             <h2 class="text-2xl font-serif font-bold text-on-surface">{item.term}</h2>
-            {item.contraction && (
+            {item.category && (
               <span class="label-caps text-secondary-dim bg-secondary-dim/10 px-2 py-1 rounded border border-secondary-dim/20">
-                {item.contraction}
+                {item.category}
               </span>
             )}
           </div>

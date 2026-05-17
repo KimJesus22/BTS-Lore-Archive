@@ -1,6 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import AdminStatCard from '../../components/AdminStatCard.astro';
+import EraForm from '../../components/admin/EraForm.astro';
+import TimelineForm from '../../components/admin/TimelineForm.astro';
+import TheoryForm from '../../components/admin/TheoryForm.astro';
+import GlossaryForm from '../../components/admin/GlossaryForm.astro';
 ---
 
 <BaseLayout title="Admin Dashboard">
@@ -9,10 +13,10 @@ import AdminStatCard from '../../components/AdminStatCard.astro';
     <header class="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
       <div>
         <h1 class="text-headline-lg font-serif font-bold text-on-surface mb-2">Panel de Control</h1>
-        <p class="text-on-surface-variant text-sm font-sans">Gestión del contenido del archivo y base de datos (Vista Mock)</p>
+        <p class="text-on-surface-variant text-sm font-sans">Gestión del contenido de la base de datos</p>
       </div>
       <div class="flex items-center gap-4">
-        <span class="label-caps text-primary-light bg-primary/10 border border-primary/30 px-3 py-1 rounded-full">Modo de Prueba</span>
+        <span class="label-caps text-secondary-dim bg-secondary-dim/10 border border-secondary-dim/30 px-3 py-1 rounded-full">Activo</span>
         <button class="bg-surface-bright text-on-surface px-6 py-2 rounded-lg text-sm font-semibold hover:bg-surface-variant transition-colors border border-border">
           Cerrar Sesión
         </button>
@@ -25,6 +29,19 @@ import AdminStatCard from '../../components/AdminStatCard.astro';
       <AdminStatCard title="Eventos de Línea de Tiempo" value="128" />
       <AdminStatCard title="Teorías Aprobadas" value="42" />
       <AdminStatCard title="Tráfico (Últimos 30d)" value="14.2K" highlight={true} />
+    </div>
+
+    <div class="mb-12 border-b border-border/50 pb-4">
+      <h2 class="text-2xl font-serif text-on-surface">Crear Contenido</h2>
+      <p class="text-on-surface-variant text-sm">Inserta nuevos registros directamente en la base de datos de InsForge.</p>
+    </div>
+
+    {/* Content Creation Forms */}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <EraForm />
+      <TimelineForm />
+      <TheoryForm />
+      <GlossaryForm />
     </div>
 
     {/* Content Management Area */}

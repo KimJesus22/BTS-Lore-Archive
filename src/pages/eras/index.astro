@@ -20,7 +20,7 @@ const eras = await getEras();
         <Card 
           title={era.title}
           description={era.description}
-          tag={era.year}
+          tag={era.start_year ? era.start_year.toString() : 'Desconocido'}
           href={`/eras/${era.id}`}
         />
       ))}

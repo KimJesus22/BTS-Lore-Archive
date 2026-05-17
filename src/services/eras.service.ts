@@ -24,3 +24,18 @@ export const getEras = async (): Promise<Era[]> => {
     return mockEras;
   }
 };
+
+export const createEra = async (era: Omit<Era, 'created_at'>) => {
+  // TODO: SEGURIDAD - Aquí verificaríamos si el usuario actual tiene permisos de administrador
+  // antes de enviar los datos a la base de datos.
+  const { data, error } = await insforge.database
+    .from('eras')
+    .insert([era])
+    .select();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+};

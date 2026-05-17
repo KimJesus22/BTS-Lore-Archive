@@ -19,8 +19,8 @@ const theories = await getTheories();
       {theories.map((theory) => (
         <Card 
           title={theory.title}
-          description={theory.description}
-          tag={theory.difficulty}
+          description={theory.content}
+          tag={theory.tags ? theory.tags[0] : 'Teoría'}
           href="javascript:void(0)"
         />
       ))}
