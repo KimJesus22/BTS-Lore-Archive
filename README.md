@@ -1,43 +1,57 @@
-# Astro Starter Kit: Minimal
+# BTS Lore Archive
 
-```sh
-pnpm create astro@latest -- --template minimal
-```
+Un repositorio de alta fidelidad del lore del universo de BTS. Documentando las líneas de tiempo, los personajes y las narrativas interconectadas usando **Astro** y **Tailwind CSS 3.4**.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+> 🌌 **El Universo Narrativo:** Un archivo exhaustivo para mantener viva la historia.
 
-## 🚀 Project Structure
+## 🚀 Estructura del Proyecto
 
-Inside of your Astro project, you'll see the following folders and files:
+Dentro del proyecto, encontrarás la siguiente estructura de directorios y archivos importantes:
 
 ```text
 /
-├── public/
+├── public/                 # Archivos estáticos como imágenes y favicons
 ├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+│   ├── components/         # Componentes UI reutilizables (Card, Button, TimelineNode, PageHeader)
+│   ├── data/               # Datos de prueba (mock) estructurados por dominio (eras, members, etc.)
+│   ├── layouts/            # Plantillas maestras (BaseLayout) con fuentes y estilos base globales
+│   ├── lib/                # Configuración de clientes externos (ej. insforge.ts)
+│   ├── pages/              # Rutas de navegación (file-based routing de Astro)
+│   ├── services/           # Lógica de negocio y fetching a InsForge con fallback a mocks
+│   ├── styles/             # Archivos CSS globales (global.css con utilidades de Tailwind)
+│   └── types/              # Definiciones y contratos de TypeScript (content.ts)
+├── .env                    # Variables de entorno (PUBLIC_INSFORGE_URL, PUBLIC_INSFORGE_ANON_KEY)
+├── AGENTS.md               # Reglas estrictas de desarrollo y configuración del proyecto
+├── astro.config.mjs        # Configuración principal de Astro
+├── package.json            # Dependencias y scripts del proyecto
+└── tailwind.config.mjs     # Sistema de diseño "Cosmic Archive" y tokens de estilo
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Astro busca archivos `.astro` o `.md` en el directorio `src/pages/`. Cada página se expone automáticamente como una ruta según su nombre de archivo.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## 🧞 Comandos Útiles
 
-Any static assets, like images, can be placed in the `public/` directory.
+Todos los comandos se ejecutan desde la raíz del proyecto usando `pnpm 11`:
 
-## 🧞 Commands
+| Comando                     | Acción                                                              |
+| :-------------------------- | :------------------------------------------------------------------ |
+| `pnpm install`              | Instala todas las dependencias necesarias del proyecto.             |
+| `pnpm dev`                  | Inicia el servidor de desarrollo local en `http://localhost:4321`.  |
+| `pnpm build`                | Genera la versión optimizada para producción en `./dist/`.          |
+| `pnpm preview`              | Previsualiza tu compilación de producción localmente.               |
+| `pnpm astro ...`            | Ejecuta comandos del CLI como `astro check` para validar tipados.   |
 
-All commands are run from the root of the project, from a terminal:
+## 🛠️ Tecnologías Utilizadas
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+- **Framework:** Astro (v6.x)
+- **Lenguaje:** TypeScript
+- **Estilos:** Tailwind CSS (v3.4, intencionalmente bloqueado para compatibilidad con InsForge)
+- **Base de Datos / Backend:** InsForge (Base de datos remota con capa de fallback)
+- **SDK:** `@insforge/sdk`
 
-## 👀 Want to learn more?
+## 🔮 Fase de Desarrollo Actual
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+El proyecto se encuentra en la **Fase 2 (Integración Backend)**. 
+- **Conexión a Datos:** Las rutas de la aplicación están conectadas a una capa de servicios (`src/services/`) que consultan tablas reales en **InsForge**.
+- **Sistema de Fallback:** En caso de que la conexión falle, o las tablas en producción estén vacías, el sistema automáticamente usa los datos de prueba (`src/data/`) de forma transparente para evitar que el sitio colapse.
+- **Pendiente:** Funcionalidad real de inicio de sesión y panel de administración para insertar registros desde la UI.

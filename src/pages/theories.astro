@@ -1,8 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Card from '../components/Card.astro';
-import { mockTheories } from '../data/theories';
 import PageHeader from '../components/PageHeader.astro';
+import { getTheories } from '../services/theories.service';
+
+const theories = await getTheories();
 ---
 
 <BaseLayout title="Teorías">
@@ -14,7 +16,7 @@ import PageHeader from '../components/PageHeader.astro';
     />
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {mockTheories.map((theory) => (
+      {theories.map((theory) => (
         <Card 
           title={theory.title}
           description={theory.description}

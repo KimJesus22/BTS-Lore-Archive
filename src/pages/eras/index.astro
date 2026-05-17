@@ -2,7 +2,8 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Card from '../../components/Card.astro';
 import PageHeader from '../../components/PageHeader.astro';
-import { mockEras } from '../../data/eras';
+import { getEras } from '../../services/eras.service';
+const eras = await getEras();
 ---
 
 <BaseLayout title="Eras">
@@ -15,7 +16,7 @@ import { mockEras } from '../../data/eras';
     />
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {mockEras.map((era) => (
+      {eras.map((era) => (
         <Card 
           title={era.title}
           description={era.description}

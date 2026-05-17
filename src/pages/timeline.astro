@@ -2,7 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import TimelineNode from '../components/TimelineNode.astro';
 import PageHeader from '../components/PageHeader.astro';
-import { mockTimelineEvents } from '../data/timeline';
+import { getTimelineEvents } from '../services/timeline.service';
+
+const timelineEvents = await getTimelineEvents();
 ---
 
 <BaseLayout title="Línea de Tiempo">
@@ -14,7 +16,7 @@ import { mockTimelineEvents } from '../data/timeline';
     />
 
     <div class="max-w-4xl mx-auto relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent space-y-12">
-      {mockTimelineEvents.map((event) => (
+      {timelineEvents.map((event) => (
         <TimelineNode 
           date={event.date}
           title={event.title}

@@ -1,15 +1,22 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TimelineNode from '../../components/TimelineNode.astro';
-import { mockEras } from '../../data/eras';
+import PageHeader from '../../components/PageHeader.astro';
+import { getEras } from '../../services/eras.service';
+import type { Era } from '../../types/content';
 
-export function getStaticPaths() {
-  return mockEras.map((era) => {
+export async function getStaticPaths() {
+  const eras = await getEras();
+  return eras.map((era) => {
     return {
       params: { id: era.id },
       props: { era },
     };
   });
+}
+
+interface Props {
+  era: Era;
 }
 
 const { era } = Astro.props;
