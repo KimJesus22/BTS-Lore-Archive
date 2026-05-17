@@ -54,4 +54,10 @@ Todos los comandos se ejecutan desde la raíz del proyecto usando `pnpm 11`:
 El proyecto se encuentra en la **Fase 3 (Creación y Escritura en Backend)**. 
 - **Lectura Resiliente:** Las rutas de la aplicación consumen datos de la capa de servicios (`src/services/`) que consultan tablas en **InsForge**, con un sistema transparente de fallback a datos locales (`src/data/`) si la conexión falla o las tablas están vacías.
 - **Escritura Directa:** El panel `/admin` cuenta con 4 formularios funcionales (`EraForm`, `TimelineForm`, `TheoryForm`, `GlossaryForm`) en el lado del cliente (Client-side JS). Los datos se validan, se autogeneran sus UUIDs y se guardan directamente en **InsForge**.
+- **Refinamiento Estético (Iteración 2):** Se han pulido detalles visuales clave basados en el diseño premium:
+  - *Navegación Móvil:* Menú tipo hamburguesa con efectos de desenfoque cósmico y cabecera sticky simplificada.
+  - *Cards de Eras:* Efectos de brillo/escala en hover y optimización de insignias para metadatos.
+  - *Línea de Tiempo:* Conectores luminosos de mayor contraste, tipografía de fechas jerarquizada y mayor espaciado para lectura fluida.
+  - *Dashboard de Admin:* Rediseño en cuadrícula de 12 columnas, estados de carga y "vacíos" estandarizados (`EmptyState.astro`), y botones de acción con mayor peso jerárquico.
+  - *Profundidad Global:* Transición de gradientes de fondo más inmersivos (`Surface -> Surface Dim`) y suavizado de glassmorphism.
 - **Pendiente:** Implementar el flujo de autenticación real (login) para proteger el panel `/admin`, el cual actualmente simula su seguridad mediante comentarios guía `// TODO: SEGURIDAD` en las mutaciones de los servicios.

@@ -8,7 +8,7 @@ interface Props {
 const { title, value, highlight = false } = Astro.props;
 ---
 
-<div class={`glass-card p-6 ${highlight ? 'border-primary/30 relative overflow-hidden' : ''}`}>
+<div class={`glass-card p-6 xl:col-span-3 ${highlight ? 'border-primary/30 relative overflow-hidden' : ''}`}>
   {highlight && <div class="absolute inset-0 bg-primary/5"></div>}
   <div class="relative z-10">
     <span class={`block label-caps mb-2 ${highlight ? 'text-primary-light' : 'text-on-surface-variant'}`}>{title}</span>

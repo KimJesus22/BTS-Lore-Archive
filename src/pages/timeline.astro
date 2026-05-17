@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import EmptyState from '../components/EmptyState.astro';
 import TimelineNode from '../components/TimelineNode.astro';
 import PageHeader from '../components/PageHeader.astro';
 import { getTimelineEvents } from '../services/timeline.service';
@@ -15,14 +16,18 @@ const timelineEvents = await getTimelineEvents();
       description="Los eventos clave que definen la narrativa, ordenados cronológicamente desde el año 22." 
     />
 
-    <div class="max-w-4xl mx-auto relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent space-y-12">
-      {timelineEvents.map((event) => (
-        <TimelineNode 
-          date={event.event_date || ''}
-          title={event.title}
-          description={event.description}
-        />
-      ))}
-    </div>
+    {timelineEvents.length > 0 ? (
+      <div class="max-w-4xl mx-auto space-y-12 md:space-y-14">
+        {timelineEvents.map((event) => (
+          <TimelineNode 
+            date={event.event_date || 'Sin fecha'}
+            title={event.title}
+            description={event.description}
+          />
+        ))}
+      </div>
+    ) : (
+      <EmptyState title="No hay eventos registrados" description="La línea de tiempo mostrará nuevos nodos cuando existan registros publicados." />
+    )}
   </div>
 </BaseLayout>

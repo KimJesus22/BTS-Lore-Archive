@@ -13,7 +13,7 @@ import GlossaryForm from '../../components/admin/GlossaryForm.astro';
     <header class="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
       <div>
         <h1 class="text-headline-lg font-serif font-bold text-on-surface mb-2">Panel de Control</h1>
-        <p class="text-on-surface-variant text-sm font-sans">Gestión del contenido de la base de datos</p>
+        <p class="text-on-surface-variant text-sm font-sans">Gestión del contenido de la base de datos. Pendiente de autenticación real antes de producción.</p>
       </div>
       <div class="flex items-center gap-4">
         <span class="label-caps text-secondary-dim bg-secondary-dim/10 border border-secondary-dim/30 px-3 py-1 rounded-full">Activo</span>
@@ -24,28 +24,53 @@ import GlossaryForm from '../../components/admin/GlossaryForm.astro';
     </header>
 
     {/* Metrics Grid */}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-12 gap-6 mb-12">
       <AdminStatCard title="Total de Eras" value="4" />
       <AdminStatCard title="Eventos de Línea de Tiempo" value="128" />
       <AdminStatCard title="Teorías Aprobadas" value="42" />
       <AdminStatCard title="Tráfico (Últimos 30d)" value="14.2K" highlight={true} />
     </div>
 
-    <div class="mb-12 border-b border-border/50 pb-4">
-      <h2 class="text-2xl font-serif text-on-surface">Crear Contenido</h2>
-      <p class="text-on-surface-variant text-sm">Inserta nuevos registros directamente en la base de datos de InsForge.</p>
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+      <section class="xl:col-span-8">
+        <div class="mb-8 border-b border-border/50 pb-4">
+          <h2 class="text-2xl font-serif text-on-surface">Crear Contenido</h2>
+          <p class="text-on-surface-variant text-sm">Inserta nuevos registros directamente en la base de datos de InsForge.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <EraForm />
+          <TimelineForm />
+          <TheoryForm />
+          <GlossaryForm />
+        </div>
+      </section>
+
+      <aside class="xl:col-span-4 space-y-8">
+        <div class="glass-card p-6">
+          <div class="mb-5 flex items-center justify-between border-b border-border/50 pb-4">
+            <h2 class="text-xl font-serif text-on-surface">Cola de Revisión</h2>
+            <span class="label-caps text-secondary-dim">Vacía</span>
+          </div>
+          <div class="rounded-xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center">
+            <p class="font-semibold text-on-surface">No hay elementos pendientes</p>
+            <p class="mt-2 text-sm leading-relaxed text-on-surface-variant">Las nuevas teorías o eventos por moderar aparecerán aquí.</p>
+          </div>
+        </div>
+
+        <div class="glass-card p-6" aria-busy="true">
+          <h2 class="text-xl font-serif text-on-surface mb-5">Sincronización</h2>
+          <div class="space-y-3">
+            <span class="skeleton-line w-3/4"></span>
+            <span class="skeleton-line w-full"></span>
+            <span class="skeleton-line w-2/3"></span>
+          </div>
+          <p class="mt-5 text-xs text-on-surface-variant">Preparado para mostrar estados de carga al consultar datos remotos.</p>
+        </div>
+      </aside>
     </div>
 
-    {/* Content Creation Forms */}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <EraForm />
-      <TimelineForm />
-      <TheoryForm />
-      <GlossaryForm />
-    </div>
-
-    {/* Content Management Area */}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
       <div class="lg:col-span-2 glass-card p-8">
         <div class="flex items-center justify-between mb-8 pb-4 border-b border-border/50">
           <h2 class="text-xl font-serif text-on-surface">Actividad Reciente</h2>
@@ -79,12 +104,12 @@ import GlossaryForm from '../../components/admin/GlossaryForm.astro';
 
       <div class="space-y-6">
         <h2 class="text-xl font-serif text-on-surface mb-4">Acciones Rápidas</h2>
-        <button class="w-full text-left glass-card p-4 hover:border-primary/50 transition-colors group">
-          <span class="block text-primary-light font-semibold mb-1 group-hover:text-white transition-colors">+ Añadir Nueva Era</span>
+        <button class="w-full text-left glass-card p-5 hover:border-primary/50 transition-colors group">
+          <span class="block text-primary-light font-semibold mb-1 group-hover:text-white transition-colors">Añadir Nueva Era</span>
           <span class="block text-xs text-on-surface-variant">Crear un nuevo arco narrativo</span>
         </button>
-        <button class="w-full text-left glass-card p-4 hover:border-secondary-dim/50 transition-colors group">
-          <span class="block text-secondary-dim font-semibold mb-1 group-hover:text-white transition-colors">+ Registrar Evento</span>
+        <button class="w-full text-left glass-card p-5 hover:border-secondary-dim/50 transition-colors group">
+          <span class="block text-secondary-dim font-semibold mb-1 group-hover:text-white transition-colors">Registrar Evento</span>
           <span class="block text-xs text-on-surface-variant">Añadir nodo a la línea de tiempo</span>
         </button>
       </div>

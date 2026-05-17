@@ -1,3 +1,4 @@
+# Política explícita: no aprobar scripts de build de dependencias sin revisión.
 allowBuilds:
-  esbuild: set this to true or false
-  sharp: set this to true or false
+  esbuild: false
+  sharp: false

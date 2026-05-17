@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TimelineNode from '../../components/TimelineNode.astro';
-import PageHeader from '../../components/PageHeader.astro';
 import { getEras } from '../../services/eras.service';
 import type { Era } from '../../types/content';
 
@@ -20,6 +19,7 @@ interface Props {
 }
 
 const { era } = Astro.props;
+const eraState = era.end_year ? 'Completado' : 'Activo';
 ---
 
 <BaseLayout title={era.title}>
@@ -39,7 +39,7 @@ const { era } = Astro.props;
       <div class="flex items-center gap-4 text-primary-light label-caps mb-6">
         <span>{era.start_year} - {era.end_year || 'Presente'}</span>
         <span class="w-1.5 h-1.5 rounded-full bg-secondary-dim"></span>
-        <span>{era.status === 'Archivado' ? 'Completado' : era.status || 'Activo'}</span>
+        <span>{eraState}</span>
       </div>
       <p class="text-body-md md:text-body-lg text-on-surface-variant max-w-3xl leading-relaxed">{era.description}</p>
     </header>

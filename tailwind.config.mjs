@@ -9,6 +9,7 @@ export default {
           dim: '#0c0f10',
           bright: '#373a3b',
           container: '#1d2021',
+          variant: '#323536',
         },
         primary: {
           DEFAULT: '#6d28d9',
@@ -23,8 +24,17 @@ export default {
         on: {
           surface: '#ffffff',
           'surface-variant': '#a1a1aa',
+          primary: '#3f008d',
         },
         border: 'rgba(255, 255, 255, 0.1)',
+      },
+      fontSize: {
+        'display-lg': ['64px', { lineHeight: '1.1', letterSpacing: '0' }],
+        'display-lg-mobile': ['40px', { lineHeight: '1.2', letterSpacing: '0' }],
+        'headline-lg': ['32px', { lineHeight: '1.3', letterSpacing: '0' }],
+        'headline-md': ['24px', { lineHeight: '1.4', letterSpacing: '0' }],
+        'body-lg': ['18px', { lineHeight: '1.6', letterSpacing: '0' }],
+        'body-md': ['16px', { lineHeight: '1.6', letterSpacing: '0' }],
       },
       fontFamily: {
         serif: ['"Playfair Display"', 'serif'],
@@ -35,6 +45,9 @@ export default {
         'gutter': '32px',
         'margin-mobile': '20px',
         'margin-desktop': '64px',
+        'stack-sm': '12px',
+        'stack-md': '32px',
+        'stack-lg': '80px',
       },
       borderRadius: {
         'sm': '0.25rem',

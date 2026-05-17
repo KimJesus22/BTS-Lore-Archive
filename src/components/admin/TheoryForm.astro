@@ -10,8 +10,11 @@
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm text-on-surface-variant mb-1">Autor / Fuente</label>
-        <input type="text" name="author" required class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface" />
+        <label class="block text-sm text-on-surface-variant mb-1">Estado</label>
+        <select name="status" class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface">
+          <option value="published">Publicado</option>
+          <option value="draft">Borrador</option>
+        </select>
       </div>
       <div>
         <label class="block text-sm text-on-surface-variant mb-1">Dificultad (Tag)</label>
@@ -51,10 +54,9 @@
         id: crypto.randomUUID(),
         title,
         slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
-        author: formData.get('author') as string,
         content: formData.get('content') as string,
         tags: [tag],
-        status: 'published'
+        status: formData.get('status') as string
       };
 
       try {

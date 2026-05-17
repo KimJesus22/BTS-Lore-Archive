@@ -4,6 +4,12 @@ import Button from '../components/Button.astro';
 import Card from '../components/Card.astro';
 import { getEras } from '../services/eras.service';
 const eras = await getEras();
+
+const formatEraYears = (startYear?: number, endYear?: number) => {
+  if (!startYear && !endYear) return 'Desconocido';
+  if (startYear && endYear) return `${startYear} - ${endYear}`;
+  return `${startYear ?? endYear}`;
+};
 ---
 
 <BaseLayout title="Inicio">
@@ -52,7 +58,9 @@ const eras = await getEras();
           <Card 
             title={era.title}
             description={era.description}
-            tag={era.year}
+            tag={formatEraYears(era.start_year, era.end_year)}
+            status={era.end_year ? 'Completado' : 'Activo'}
+            variant="era"
             href={`/eras/${era.id}`}
           />
         ))}

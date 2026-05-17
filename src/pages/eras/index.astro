@@ -1,9 +1,16 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Card from '../../components/Card.astro';
+import EmptyState from '../../components/EmptyState.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import { getEras } from '../../services/eras.service';
 const eras = await getEras();
+
+const formatEraYears = (startYear?: number, endYear?: number) => {
+  if (!startYear && !endYear) return 'Sin fecha';
+  if (startYear && endYear) return `${startYear} - ${endYear}`;
+  return `${startYear ?? endYear}`;
+};
 ---
 
 <BaseLayout title="Eras">
@@ -15,15 +22,21 @@ const eras = await getEras();
       align="left"
     />
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {eras.map((era) => (
-        <Card 
-          title={era.title}
-          description={era.description}
-          tag={era.start_year ? era.start_year.toString() : 'Desconocido'}
-          href={`/eras/${era.id}`}
-        />
-      ))}
-    </div>
+    {eras.length > 0 ? (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {eras.map((era) => (
+          <Card 
+            title={era.title}
+            description={era.description}
+            tag={formatEraYears(era.start_year, era.end_year)}
+            status={era.end_year ? 'Completado' : 'Activo'}
+            variant="era"
+            href={`/eras/${era.id}`}
+          />
+        ))}
+      </div>
+    ) : (
+      <EmptyState title="No hay eras registradas" description="Cuando se publiquen nuevas eras, aparecerán aquí como artefactos del archivo." />
+    )}
   </div>
 </BaseLayout>

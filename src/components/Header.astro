@@ -2,10 +2,10 @@
 import { navigation } from '../data/navigation';
 ---
 
-<header class="sticky top-0 z-50 w-full bg-surface/50 backdrop-blur-md border-b border-border">
+<header class="sticky top-0 z-50 w-full bg-surface/70 backdrop-blur-xl border-b border-border">
   <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop h-20 flex items-center justify-between">
     <div class="flex-shrink-0">
-      <a href="/" class="font-serif text-2xl font-bold text-on-surface">
+      <a href="/" class="font-serif text-xl sm:text-2xl font-bold text-on-surface">
         Cosmic<span class="text-primary-light">Archive</span>
       </a>
     </div>
@@ -19,11 +19,42 @@ import { navigation } from '../data/navigation';
     </nav>
 
     <div class="md:hidden">
-      <button class="text-on-surface-variant hover:text-white" aria-label="Menu">
+      <button id="mobile-menu-toggle" class="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-on-surface-variant hover:text-white" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-menu">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
         </svg>
       </button>
     </div>
   </div>
+
+  <div id="mobile-menu" class="fixed inset-x-0 top-20 hidden border-b border-white/10 bg-surface/95 px-margin-mobile py-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl md:hidden">
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(109,40,217,0.22),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(233,195,73,0.12),transparent_32%)]"></div>
+    <nav class="flex flex-col gap-3" aria-label="Navegación móvil">
+      {navigation.map((item) => (
+        <a href={item.href} class="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-base font-semibold text-on-surface transition-colors hover:border-primary/40 hover:bg-primary/10">
+          {item.name}
+        </a>
+      ))}
+    </nav>
+  </div>
 </header>
+
+<script>
+  const toggle = document.getElementById('mobile-menu-toggle');
+  const menu = document.getElementById('mobile-menu');
+  const links = menu?.querySelectorAll('a') ?? [];
+
+  const setOpen = (open: boolean) => {
+    menu?.classList.toggle('hidden', !open);
+    toggle?.setAttribute('aria-expanded', String(open));
+    toggle?.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+  };
+
+  toggle?.addEventListener('click', () => {
+    setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+  });
+
+  links.forEach((link) => {
+    link.addEventListener('click', () => setOpen(false));
+  });
+</script>

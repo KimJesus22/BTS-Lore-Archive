@@ -4,6 +4,11 @@ import PageHeader from '../components/PageHeader.astro';
 import { getMembers } from '../services/members.service';
 
 const members = await getMembers();
+
+const formatSymbols = (symbols?: string[]) => {
+  if (!symbols || symbols.length === 0) return 'Símbolos por clasificar';
+  return symbols.join(' · ');
+};
 ---
 
 <BaseLayout title="Miembros">
@@ -23,7 +28,7 @@ const members = await getMembers();
           </div>
           <h3 class="font-serif text-xl font-bold text-on-surface mb-1">{member.name}</h3>
           <span class="block label-caps text-secondary-dim mb-4">{member.lore_role}</span>
-          <p class="text-sm font-sans italic text-on-surface-variant">"{member.quote || '...'}"</p>
+          <p class="text-sm font-sans text-on-surface-variant">{formatSymbols(member.symbols)}</p>
         </div>
       ))}
     </div>
