@@ -20,6 +20,7 @@ const timelineEvents = await getTimelineEvents();
       <div class="max-w-4xl mx-auto space-y-12 md:space-y-14">
         {timelineEvents.map((event) => (
           <TimelineNode 
+            id={event.slug || event.id}
             date={event.event_date || 'Sin fecha'}
             title={event.title}
             description={event.description}

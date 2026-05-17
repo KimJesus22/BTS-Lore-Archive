@@ -1,0 +1,311 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Card from '../../components/Card.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import FavoriteButton from '../../components/FavoriteButton.astro';
+import { getTheories } from '../../services/theories.service';
+import { calculateReadingTime } from '../../utils/readingTime';
+import type { Theory } from '../../types/content';
+
+export async function getStaticPaths() {
+  const theories = await getTheories();
+
+  return theories.map((theory) => ({
+    params: { slug: theory.slug },
+    props: { theory, theories },
+  }));
+}
+
+const { theory, theories } = Astro.props;
+
+const formatDate = (value?: string) => {
+  if (!value) return 'Fecha no registrada';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Fecha no registrada';
+
+  return new Intl.DateTimeFormat('es-MX', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+};
+
+const sharedTags = (candidate: Theory) => {
+  const currentTags = new Set((theory.tags ?? []).map((tag) => tag.toLowerCase()));
+  return (candidate.tags ?? []).filter((tag) => currentTags.has(tag.toLowerCase()));
+};
+
+const relatedTheories = theories
+  .filter((candidate) => candidate.slug !== theory.slug && sharedTags(candidate).length > 0)
+  .slice(0, 3);
+
+const statusLabel = theory.status === 'published' ? 'Publicado' : 'Borrador';
+const metaDescription = theory.content.length > 155 ? `${theory.content.slice(0, 155).trim()}...` : theory.content;
+const readingTime = calculateReadingTime(theory.content);
+
+type ContentBlock =
+  | { type: 'heading'; level: 2 | 3; text: string; id: string }
+  | { type: 'paragraph'; text: string }
+  | { type: 'quote'; text: string }
+  | { type: 'list'; items: string[] };
+
+const slugifyHeading = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+
+const parseTheoryContent = (content: string) => {
+  const lines = content.split(/\r?\n/);
+  const blocks: ContentBlock[] = [];
+  const headings: Array<{ id: string; text: string; level: 2 | 3 }> = [];
+  let paragraph: string[] = [];
+  let listItems: string[] = [];
+
+  const flushParagraph = () => {
+    if (paragraph.length > 0) {
+      blocks.push({ type: 'paragraph', text: paragraph.join(' ') });
+      paragraph = [];
+    }
+  };
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      blocks.push({ type: 'list', items: listItems });
+      listItems = [];
+    }
+  };
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+
+    const headingMatch = trimmed.match(/^(#{2,3})\s+(.+)$/);
+    if (headingMatch) {
+      flushParagraph();
+      flushList();
+
+      const level = headingMatch[1].length as 2 | 3;
+      const text = headingMatch[2].trim();
+      const id = slugifyHeading(text);
+      headings.push({ id, text, level });
+      blocks.push({ type: 'heading', level, text, id });
+      return;
+    }
+
+    if (trimmed.startsWith('>')) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: 'quote', text: trimmed.replace(/^>\s?/, '') });
+      return;
+    }
+
+    if (trimmed.startsWith('- ')) {
+      flushParagraph();
+      listItems.push(trimmed.replace(/^- /, ''));
+      return;
+    }
+
+    flushList();
+    paragraph.push(trimmed);
+  });
+
+  flushParagraph();
+  flushList();
+
+  return { blocks, headings };
+};
+
+const { blocks: contentBlocks, headings } = parseTheoryContent(theory.content);
+---
+
+<BaseLayout title={theory.title} description={metaDescription}>
+  <article class="max-w-[960px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <a href="/theories" class="mb-8 inline-flex items-center text-sm font-semibold text-on-surface-variant transition-colors hover:text-primary-light">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="mr-2 h-4 w-4" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      </svg>
+      Volver a teorías
+    </a>
+
+    <header class="mb-10 border-b border-border/50 pb-8">
+      <div class="mb-5 flex flex-wrap items-center gap-3">
+        <span class="label-caps rounded-full border border-secondary-dim/25 bg-secondary-dim/10 px-3 py-1 text-secondary-dim">
+          {statusLabel}
+        </span>
+        <span class="label-caps text-on-surface-variant">{formatDate(theory.created_at)}</span>
+        <span class="label-caps text-on-surface-variant">{readingTime.label}</span>
+      </div>
+
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <h1 class="text-display-lg-mobile md:text-display-lg font-serif font-bold text-on-surface">{theory.title}</h1>
+        <div class="flex flex-wrap gap-3">
+          <FavoriteButton
+            id={theory.id}
+            type="theory"
+            title={theory.title}
+            description={metaDescription}
+            href={`/theories/${theory.slug}`}
+          />
+          <button
+            id="copy-link-button"
+            type="button"
+            class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-on-surface-variant transition-colors hover:border-primary/40 hover:text-primary-light"
+          >
+            Copiar enlace
+          </button>
+        </div>
+      </div>
+
+      {theory.tags && theory.tags.length > 0 && (
+        <div class="mt-6 flex flex-wrap gap-2">
+          {theory.tags.map((tag) => (
+            <span class="label-caps rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-primary-light">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </header>
+
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
+      <aside class="lg:sticky lg:top-28 lg:self-start">
+        <div class="glass-card p-5">
+          <p class="label-caps text-primary-light">Modo lectura</p>
+          <p class="mt-3 text-sm leading-relaxed text-on-surface-variant">{readingTime.words} palabras · {readingTime.label}</p>
+          {headings.length > 0 && (
+            <nav class="mt-6 border-t border-border/50 pt-5" aria-label="Índice de contenido">
+              <p class="mb-3 text-sm font-semibold text-on-surface">Índice</p>
+              <ul class="space-y-2">
+                {headings.map((heading) => (
+                  <li class={heading.level === 3 ? 'pl-4' : ''}>
+                    <a href={`#${heading.id}`} class="text-sm leading-relaxed text-on-surface-variant transition-colors hover:text-primary-light">
+                      {heading.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
+        </div>
+      </aside>
+
+      <div class="glass-card p-6 md:p-10">
+        <div class="article-content">
+          {contentBlocks.map((block) => (
+            <>
+              {block.type === 'heading' && block.level === 2 && (
+                <h2 id={block.id} class="scroll-mt-28 text-headline-md font-serif text-on-surface">
+                  {block.text}
+                </h2>
+              )}
+              {block.type === 'heading' && block.level === 3 && (
+                <h3 id={block.id} class="scroll-mt-28 text-xl font-serif text-primary-light">
+                  {block.text}
+                </h3>
+              )}
+              {block.type === 'paragraph' && (
+                <p>{block.text}</p>
+              )}
+              {block.type === 'quote' && (
+                <blockquote>{block.text}</blockquote>
+              )}
+              {block.type === 'list' && (
+                <ul>
+                  {block.items.map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <button
+      id="back-to-top"
+      type="button"
+      class="fixed bottom-6 right-6 z-40 hidden rounded-full border border-primary/30 bg-surface/90 px-4 py-3 text-sm font-semibold text-primary-light shadow-[0_0_24px_rgba(109,40,217,0.25)] backdrop-blur-xl transition-colors hover:border-primary-light/60"
+    >
+      Volver arriba
+    </button>
+
+    <section class="mt-14">
+      <div class="mb-6 flex items-end justify-between gap-4 border-b border-border/50 pb-4">
+        <div>
+          <p class="label-caps text-primary-light">Lectura conectada</p>
+          <h2 class="mt-2 text-headline-md font-serif text-on-surface">Teorías relacionadas</h2>
+        </div>
+      </div>
+
+      {relatedTheories.length > 0 ? (
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {relatedTheories.map((related) => (
+            <Card
+              title={related.title}
+              description={related.content}
+              tag={sharedTags(related)[0] ?? related.tags?.[0] ?? 'Teoría'}
+              status={related.status === 'published' ? 'Publicado' : 'Borrador'}
+              href={`/theories/${related.slug}`}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState title="Sin teorías relacionadas" description="Cuando existan teorías con etiquetas compartidas, aparecerán aquí." />
+      )}
+    </section>
+  </article>
+</BaseLayout>
+
+<script>
+  const copyButton = document.getElementById('copy-link-button');
+  const backToTopButton = document.getElementById('back-to-top');
+
+  copyButton?.addEventListener('click', async () => {
+    let copied = false;
+
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      copied = true;
+    } catch {
+      const textArea = document.createElement('textarea');
+      textArea.value = window.location.href;
+      textArea.setAttribute('readonly', '');
+      textArea.style.position = 'fixed';
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      copied = Boolean((document as unknown as { execCommand: (command: string) => boolean }).execCommand('copy'));
+      textArea.remove();
+    }
+
+    copyButton.textContent = copied ? 'Enlace copiado' : 'Copia no disponible';
+
+    window.setTimeout(() => {
+      copyButton.textContent = 'Copiar enlace';
+    }, 1800);
+  });
+
+  backToTopButton?.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  const toggleBackToTop = () => {
+    backToTopButton?.classList.toggle('hidden', window.scrollY < 360);
+  };
+
+  toggleBackToTop();
+  window.addEventListener('scroll', toggleBackToTop, { passive: true });
+</script>

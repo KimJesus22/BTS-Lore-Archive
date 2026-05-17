@@ -6,5 +6,7 @@ export const navigation: NavigationItem[] = [
   { name: 'Línea de Tiempo', href: '/timeline' },
   { name: 'Miembros', href: '/members' },
   { name: 'Teorías', href: '/theories' },
-  { name: 'Glosario', href: '/glossary' }
+  { name: 'Glosario', href: '/glossary' },
+  { name: 'Buscar', href: '/search' },
+  { name: 'Favoritos', href: '/favorites' }
 ];

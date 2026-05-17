@@ -33,6 +33,34 @@
     background-size: 200% 100%;
     animation: skeleton-sheen 1.6s ease-in-out infinite;
   }
+
+  .article-content {
+    @apply space-y-7 text-body-md leading-relaxed text-on-surface-variant md:text-body-lg;
+  }
+
+  .article-content p {
+    @apply leading-8;
+  }
+
+  .article-content h2 {
+    @apply mt-10 border-t border-border/50 pt-8;
+  }
+
+  .article-content h3 {
+    @apply mt-8;
+  }
+
+  .article-content ul {
+    @apply list-disc space-y-3 pl-6;
+  }
+
+  .article-content li {
+    @apply pl-2 leading-7;
+  }
+
+  .article-content blockquote {
+    @apply border-l-2 border-secondary-dim/60 bg-secondary-dim/10 py-4 pl-5 pr-4 font-serif text-xl leading-relaxed text-on-surface;
+  }
 }
 
 @keyframes skeleton-sheen {

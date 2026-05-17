@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import FavoriteButton from '../components/FavoriteButton.astro';
 import PageHeader from '../components/PageHeader.astro';
 import { getGlossaryTerms } from '../services/glossary.service';
 
@@ -17,14 +18,23 @@ const glossary = await getGlossaryTerms();
 
     <div class="space-y-8">
       {glossary.map((item) => (
-        <div class="glass-card p-6 md:p-8">
-          <div class="flex items-center gap-4 mb-4">
-            <h2 class="text-2xl font-serif font-bold text-on-surface">{item.term}</h2>
-            {item.category && (
-              <span class="label-caps text-secondary-dim bg-secondary-dim/10 px-2 py-1 rounded border border-secondary-dim/20">
-                {item.category}
-              </span>
-            )}
+        <div id={item.slug} class="glass-card scroll-mt-28 p-6 md:p-8">
+          <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="flex flex-wrap items-center gap-4">
+              <h2 class="text-2xl font-serif font-bold text-on-surface">{item.term}</h2>
+              {item.category && (
+                <span class="label-caps text-secondary-dim bg-secondary-dim/10 px-2 py-1 rounded border border-secondary-dim/20">
+                  {item.category}
+                </span>
+              )}
+            </div>
+            <FavoriteButton
+              id={item.id}
+              type="glossary"
+              title={item.term}
+              description={item.definition}
+              href={`/glossary#${item.slug}`}
+            />
           </div>
           <p class="text-on-surface-variant font-sans leading-relaxed text-lg">
             {item.definition}

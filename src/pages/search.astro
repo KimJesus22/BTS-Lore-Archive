@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import SearchInput from '../components/SearchInput.astro';
+import SearchResults from '../components/SearchResults.astro';
+import { getSearchIndex } from '../services/search.service';
+
+const query = Astro.url.searchParams.get('q')?.trim() ?? '';
+const index = await getSearchIndex();
+---
+
+<BaseLayout title="Buscar">
+  <div class="max-w-[960px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader
+      tag="Exploración"
+      title="Buscar en el Archivo"
+      description="Encuentra eras, miembros, eventos, teorías y términos del glosario desde un solo lugar."
+      align="left"
+    />
+
+    <div class="mb-10">
+      <SearchInput query={query} />
+    </div>
+
+    <SearchResults index={index} />
+  </div>
+</BaseLayout>

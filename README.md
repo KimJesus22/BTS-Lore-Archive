@@ -12,14 +12,15 @@ Dentro del proyecto, encontrarás la siguiente estructura de directorios y archi
 /
 ├── public/                 # Archivos estáticos como imágenes y favicons
 ├── src/
-│   ├── components/         # Componentes UI reutilizables y subcarpeta admin/ con formularios de creación
+│   ├── components/         # Componentes UI (Card, Button, EmptyState, FavoriteButton, SearchInput/Results, admin/)
 │   ├── data/               # Datos de prueba (mock) estructurados por dominio (eras, members, etc.)
-│   ├── layouts/            # Plantillas maestras (BaseLayout) con fuentes y estilos base globales
+│   ├── layouts/            # Plantillas maestras (BaseLayout) con soporte SEO para meta descripciones dinámicas
 │   ├── lib/                # Configuración de clientes externos (ej. insforge.ts)
-│   ├── pages/              # Rutas de navegación (file-based routing de Astro)
-│   ├── services/           # Lógica de negocio, lectura y escritura a InsForge con fallback de lectura a mocks
+│   ├── pages/              # Rutas de navegación estáticas y dinámicas (ej. theories/[slug].astro, 404.astro)
+│   ├── services/           # Lógica de negocio, capa de servicios e indexador de búsqueda universal
 │   ├── styles/             # Archivos CSS globales (global.css con utilidades de Tailwind)
-│   └── types/              # Definiciones y contratos de TypeScript (content.ts)
+│   ├── types/              # Definiciones y contratos de TypeScript (content.ts)
+│   └── utils/              # Funciones auxiliares de utilidad (cálculo de tiempo de lectura, etc.)
 ├── .env                    # Variables de entorno (PUBLIC_INSFORGE_URL, PUBLIC_INSFORGE_ANON_KEY)
 ├── AGENTS.md               # Reglas estrictas de desarrollo y configuración del proyecto
 ├── astro.config.mjs        # Configuración principal de Astro
@@ -51,13 +52,13 @@ Todos los comandos se ejecutan desde la raíz del proyecto usando `pnpm 11`:
 
 ## 🔮 Fase de Desarrollo Actual
 
-El proyecto se encuentra en la **Fase 3 (Creación y Escritura en Backend)**. 
-- **Lectura Resiliente:** Las rutas de la aplicación consumen datos de la capa de servicios (`src/services/`) que consultan tablas en **InsForge**, con un sistema transparente de fallback a datos locales (`src/data/`) si la conexión falla o las tablas están vacías.
+El proyecto se encuentra en la **Fase 4 (Búsqueda Universal, Favoritos y Navegación Dinámica)**.
+- **Búsqueda Universal Integrada:** Implementación de un indexador y motor de búsqueda centralizado (`src/services/search.service.ts`) con normalización de caracteres especiales. Permite a los usuarios buscar simultáneamente en Eras, Miembros, Cronología, Teorías y Glosario en `/search`.
+- **Sistema de Marcadores (Favoritos):** Integración de `FavoriteButton.astro` y la vista `/favorites`. Almacena dinámicamente las selecciones en el navegador (`localStorage`) y sincroniza visualmente todos los botones en tiempo real mediante eventos globales personalizados.
+- **Detalle de Teorías y Estimación de Lectura:** Habilitación de la ruta dinámica `/theories/[slug].astro` para visualizar teorías específicas. Cuenta con un analizador de tiempo de lectura (`src/utils/readingTime.ts`) para proyectar el esfuerzo requerido.
+- **Optimización de Accesibilidad y SEO:**
+  - Integración de meta descripciones dinámicas ajustables por página en `BaseLayout.astro`.
+  - Página de error `404.astro` totalmente tematizada en concordancia con el diseño cósmico.
+  - Implementación de enlaces profundos para saltar directamente a anclas específicas en Miembros y Glosario desde los resultados de búsqueda.
 - **Escritura Directa:** El panel `/admin` cuenta con 4 formularios funcionales (`EraForm`, `TimelineForm`, `TheoryForm`, `GlossaryForm`) en el lado del cliente (Client-side JS). Los datos se validan, se autogeneran sus UUIDs y se guardan directamente en **InsForge**.
-- **Refinamiento Estético (Iteración 2):** Se han pulido detalles visuales clave basados en el diseño premium:
-  - *Navegación Móvil:* Menú tipo hamburguesa con efectos de desenfoque cósmico y cabecera sticky simplificada.
-  - *Cards de Eras:* Efectos de brillo/escala en hover y optimización de insignias para metadatos.
-  - *Línea de Tiempo:* Conectores luminosos de mayor contraste, tipografía de fechas jerarquizada y mayor espaciado para lectura fluida.
-  - *Dashboard de Admin:* Rediseño en cuadrícula de 12 columnas, estados de carga y "vacíos" estandarizados (`EmptyState.astro`), y botones de acción con mayor peso jerárquico.
-  - *Profundidad Global:* Transición de gradientes de fondo más inmersivos (`Surface -> Surface Dim`) y suavizado de glassmorphism.
 - **Pendiente:** Implementar el flujo de autenticación real (login) para proteger el panel `/admin`, el cual actualmente simula su seguridad mediante comentarios guía `// TODO: SEGURIDAD` en las mutaciones de los servicios.

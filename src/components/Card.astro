@@ -6,12 +6,13 @@ interface Props {
   href?: string;
   status?: string;
   variant?: 'default' | 'era';
+  id?: string;
 }
 
-const { title, description, tag, href, status, variant = 'default' } = Astro.props;
+const { title, description, tag, href, status, variant = 'default', id } = Astro.props;
 
 const Element = href ? 'a' : 'div';
-const extraProps = href ? { href } : {};
+const extraProps = href ? { href, id } : { id };
 const isEra = variant === 'era';
 ---
 

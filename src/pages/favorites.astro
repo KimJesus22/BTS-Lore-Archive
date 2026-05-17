@@ -1,0 +1,136 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EmptyState from '../components/EmptyState.astro';
+import PageHeader from '../components/PageHeader.astro';
+---
+
+<BaseLayout title="Favoritos" description="Favoritos locales del BTS Lore Archive guardados en este navegador.">
+  <div class="max-w-[960px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader
+      tag="Archivo personal"
+      title="Favoritos"
+      description="Tus eras, teorías y términos guardados en este navegador. No necesitas iniciar sesión."
+      align="left"
+    />
+
+    <div id="favorites-empty">
+      <EmptyState title="No hay favoritos guardados" description="Guarda eras, teorías o términos del glosario para encontrarlos aquí más tarde." />
+    </div>
+
+    <div id="favorites-results" class="hidden space-y-10"></div>
+  </div>
+</BaseLayout>
+
+<script>
+  type FavoriteType = 'era' | 'theory' | 'glossary';
+
+  interface FavoriteItem {
+    id: string;
+    type: FavoriteType;
+    title: string;
+    description: string;
+    href: string;
+  }
+
+  const storageKey = 'bts-lore-favorites';
+  const emptyState = document.getElementById('favorites-empty');
+  const resultsRoot = document.getElementById('favorites-results');
+  const groups: Array<{ type: FavoriteType; title: string }> = [
+    { type: 'era', title: 'Eras' },
+    { type: 'theory', title: 'Teorías' },
+    { type: 'glossary', title: 'Glosario' },
+  ];
+
+  const readFavorites = (): FavoriteItem[] => {
+    try {
+      const stored = window.localStorage.getItem(storageKey);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const writeFavorites = (favorites: FavoriteItem[]) => {
+    window.localStorage.setItem(storageKey, JSON.stringify(favorites));
+    window.dispatchEvent(new CustomEvent('bts-lore-favorites-updated'));
+  };
+
+  const createText = (tag: string, className: string, text: string) => {
+    const element = document.createElement(tag);
+    element.className = className;
+    element.textContent = text;
+    return element;
+  };
+
+  const removeFavorite = (item: FavoriteItem) => {
+    const favorites = readFavorites().filter((favorite) => !(favorite.id === item.id && favorite.type === item.type));
+    writeFavorites(favorites);
+    renderFavorites();
+  };
+
+  const renderFavorites = () => {
+    const favorites = readFavorites();
+
+    emptyState?.classList.toggle('hidden', favorites.length > 0);
+    resultsRoot?.classList.toggle('hidden', favorites.length === 0);
+    resultsRoot?.replaceChildren();
+
+    if (!resultsRoot || favorites.length === 0) return;
+
+    groups.forEach(({ type, title }) => {
+      const items = favorites.filter((favorite) => favorite.type === type);
+      if (items.length === 0) return;
+
+      const section = document.createElement('section');
+      section.className = 'space-y-4';
+
+      const headingRow = document.createElement('div');
+      headingRow.className = 'flex items-center gap-3';
+      headingRow.append(
+        createText('h2', 'text-headline-md font-serif text-on-surface', title),
+        createText('span', 'label-caps rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-primary-light', String(items.length)),
+      );
+
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-1 gap-4';
+
+      items.forEach((item) => {
+        const card = document.createElement('article');
+        card.className = 'glass-card p-5 md:p-6';
+
+        const top = document.createElement('div');
+        top.className = 'mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between';
+
+        const content = document.createElement('div');
+        content.append(
+          createText('p', 'label-caps text-secondary-dim', title.slice(0, -1) || title),
+          createText('h3', 'mt-2 text-xl font-serif text-on-surface', item.title),
+        );
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-on-surface-variant transition-colors hover:border-secondary-dim/40 hover:text-secondary-dim';
+        removeButton.textContent = 'Quitar';
+        removeButton.addEventListener('click', () => removeFavorite(item));
+
+        top.append(content, removeButton);
+
+        const description = createText('p', 'text-sm leading-relaxed text-on-surface-variant', item.description);
+        const link = document.createElement('a');
+        link.href = item.href;
+        link.className = 'mt-5 inline-flex text-sm font-semibold text-primary-light transition-colors hover:text-white';
+        link.textContent = 'Abrir registro';
+
+        card.append(top, description, link);
+        grid.append(card);
+      });
+
+      section.append(headingRow, grid);
+      resultsRoot.append(section);
+    });
+  };
+
+  renderFavorites();
+  window.addEventListener('storage', renderFavorites);
+  window.addEventListener('bts-lore-favorites-updated', renderFavorites);
+</script>

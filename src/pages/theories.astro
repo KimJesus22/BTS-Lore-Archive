@@ -20,11 +20,12 @@ const theories = await getTheories();
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {theories.map((theory) => (
           <Card 
+            id={theory.slug}
             title={theory.title}
             description={theory.content}
             tag={theory.tags ? theory.tags[0] : 'Teoría'}
             status={theory.status === 'published' ? 'Publicado' : 'Borrador'}
-            href="javascript:void(0)"
+            href={`/theories/${theory.slug}`}
           />
         ))}
       </div>

@@ -1,0 +1,38 @@
+---
+interface Props {
+  query?: string;
+}
+
+const { query = '' } = Astro.props;
+---
+
+<form action="/search" method="get" class="glass-card p-3 md:p-4">
+  <label for="global-search" class="sr-only">Buscar en el archivo</label>
+  <div class="flex flex-col gap-3 sm:flex-row">
+    <div class="relative flex-1">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-primary-light" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      </svg>
+      <input
+        id="global-search"
+        name="q"
+        type="search"
+        value={query}
+        placeholder="Buscar eras, miembros, símbolos, teorías..."
+        class="h-14 w-full rounded-xl border border-white/10 bg-surface-dim/80 pl-12 pr-4 text-on-surface outline-none transition-colors placeholder:text-on-surface-variant focus:border-primary/60"
+      />
+    </div>
+    <button type="submit" class="h-14 rounded-xl bg-gradient-primary px-6 font-semibold text-white shadow-[0_0_18px_rgba(109,40,217,0.28)] transition-transform hover:scale-[1.01]">
+      Buscar
+    </button>
+  </div>
+</form>
+
+<script>
+  const input = document.getElementById('global-search') as HTMLInputElement | null;
+  const query = new URLSearchParams(window.location.search).get('q') ?? '';
+
+  if (input) {
+    input.value = query;
+  }
+</script>

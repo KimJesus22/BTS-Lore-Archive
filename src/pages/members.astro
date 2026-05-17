@@ -21,7 +21,7 @@ const formatSymbols = (symbols?: string[]) => {
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {members.map((member, i) => (
-        <div class="glass-card p-8 text-center group">
+        <div id={member.slug} class="glass-card scroll-mt-28 p-8 text-center group">
           <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/30 to-secondary-dim/10 border border-primary/20 flex items-center justify-center overflow-hidden relative">
              <div class="absolute inset-0 opacity-50 bg-gradient-to-tr from-transparent via-white/10 to-transparent group-hover:via-white/30 transition-all duration-700" style={`transition-delay: ${i * 100}ms`}></div>
              <span class="font-serif text-2xl text-white/50">{member.name.charAt(0)}</span>

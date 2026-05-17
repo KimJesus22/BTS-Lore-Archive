@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EmptyState from '../components/EmptyState.astro';
+import Button from '../components/Button.astro';
+---
+
+<BaseLayout title="Página no encontrada" description="No se encontró la página solicitada en BTS Lore Archive.">
+  <div class="max-w-[760px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <EmptyState
+      title="Este registro no existe"
+      description="La ruta que buscas no está disponible o todavía no forma parte del archivo."
+    />
+    <div class="mt-8 flex justify-center">
+      <Button href="/theories" variant="primary">Volver a teorías</Button>
+    </div>
+  </div>
+</BaseLayout>
