@@ -139,3 +139,4 @@ Available languages:
 - **Styling**: Tailwind CSS 3.4 via `@astrojs/tailwind` integration (do NOT use `@tailwindcss/vite` or upgrade to Tailwind v4)
 - **BaaS**: InsForge (will be connected in a later phase)
 - **Language**: All user-facing text, UI elements, and content must be in strictly Spanish (es).
+- **Shell**: PowerShell (classic). Use `;` to chain commands, NOT `&&` (which is unsupported in this version). Example: `git add . ; git commit -m "msg"`

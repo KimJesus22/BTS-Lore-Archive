@@ -24,6 +24,8 @@ export interface Guide {
   steps: GuideLink[];
   /** Tags para filtrado y descubrimiento */
   tags: string[];
+  /** Nivel de spoiler */
+  spoilerLevel?: 'none' | 'mild' | 'major';
 }
 
 /** Etiquetas de dificultad en español */

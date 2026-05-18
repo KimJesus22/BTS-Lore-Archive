@@ -1,0 +1,206 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+
+const title = "Configuración";
+const description = "Ajusta las preferencias visuales y funcionales del archivo. Todos los cambios se guardan localmente en tu navegador.";
+---
+
+<BaseLayout title={`${title} | BTS Lore Archive`} description={description}>
+  <PageHeader title={title} description={description} tag="Local" />
+
+  <div class="max-w-[800px] mx-auto px-margin-mobile md:px-margin-desktop pb-stack-lg">
+    <div class="glass-card p-6 md:p-10 space-y-12">
+      
+      {/* 
+        Para desarrolladores:
+        Para agregar una nueva preferencia:
+        1. Agrega la propiedad al interfaz `LoreSettings` en src/layouts/BaseLayout.astro.
+        2. Agrega la propiedad al objeto `defaultSettings` en el mismo archivo.
+        3. Añade la UI correspondiente aquí abajo (usando radio buttons o toggles).
+        4. Asegúrate de que los inputs tengan un `name` o identificador y en el script de abajo 
+           captura su valor para llamar a `window.updateLoreSettings({ nuevaProp: valor })`.
+      */}
+
+      {/* Modo Spoiler */}
+      <section>
+        <div class="mb-5 border-b border-white/10 pb-4">
+          <h2 class="text-2xl font-serif font-bold text-on-surface">Modo sin Spoilers</h2>
+          <p class="text-sm text-on-surface-variant mt-1">Oculta o difumina contenido que revela detalles críticos de la historia.</p>
+        </div>
+        
+        <label class="flex items-start gap-4 p-4 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] transition-colors cursor-pointer group">
+          <div class="pt-1">
+            <input type="checkbox" id="setting-spoiler" class="w-5 h-5 rounded border-white/20 bg-black/20 text-primary focus:ring-primary/50 focus:ring-offset-surface cursor-pointer" />
+          </div>
+          <div>
+            <p class="font-semibold text-on-surface group-hover:text-primary-light transition-colors">Activar protección</p>
+            <p class="text-sm text-on-surface-variant mt-1 leading-relaxed">Bloquea eventos clave y difumina detalles sensibles para primeros lectores.</p>
+          </div>
+        </label>
+      </section>
+
+      {/* Tamaño de texto */}
+      <section>
+        <div class="mb-5 border-b border-white/10 pb-4">
+          <h2 class="text-2xl font-serif font-bold text-on-surface">Tamaño de Texto</h2>
+          <p class="text-sm text-on-surface-variant mt-1">Ajusta el tamaño base de la tipografía para facilitar la lectura.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <label class="relative flex cursor-pointer rounded-xl border border-white/10 bg-white/5 p-4 focus-within:ring-2 focus-within:ring-primary/50 hover:bg-white/10 transition-all has-[:checked]:border-primary/50 has-[:checked]:bg-primary/10">
+            <input type="radio" name="textSize" value="small" class="sr-only" />
+            <span class="flex flex-col items-center justify-center w-full gap-2">
+              <span class="text-sm font-serif font-bold text-on-surface">Pequeño</span>
+            </span>
+          </label>
+          <label class="relative flex cursor-pointer rounded-xl border border-white/10 bg-white/5 p-4 focus-within:ring-2 focus-within:ring-primary/50 hover:bg-white/10 transition-all has-[:checked]:border-primary/50 has-[:checked]:bg-primary/10">
+            <input type="radio" name="textSize" value="normal" class="sr-only" />
+            <span class="flex flex-col items-center justify-center w-full gap-2">
+              <span class="text-base font-serif font-bold text-on-surface">Normal</span>
+            </span>
+          </label>
+          <label class="relative flex cursor-pointer rounded-xl border border-white/10 bg-white/5 p-4 focus-within:ring-2 focus-within:ring-primary/50 hover:bg-white/10 transition-all has-[:checked]:border-primary/50 has-[:checked]:bg-primary/10">
+            <input type="radio" name="textSize" value="large" class="sr-only" />
+            <span class="flex flex-col items-center justify-center w-full gap-2">
+              <span class="text-lg font-serif font-bold text-on-surface">Grande</span>
+            </span>
+          </label>
+        </div>
+      </section>
+
+      {/* Densidad Visual */}
+      <section>
+        <div class="mb-5 border-b border-white/10 pb-4">
+          <h2 class="text-2xl font-serif font-bold text-on-surface">Densidad Visual</h2>
+          <p class="text-sm text-on-surface-variant mt-1">Controla los márgenes y el espaciado entre los elementos.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="relative flex cursor-pointer rounded-xl border border-white/10 bg-white/5 p-4 focus-within:ring-2 focus-within:ring-primary/50 hover:bg-white/10 transition-all has-[:checked]:border-primary/50 has-[:checked]:bg-primary/10">
+            <input type="radio" name="density" value="comfortable" class="sr-only" />
+            <span class="flex flex-col gap-1 w-full">
+              <span class="font-semibold text-on-surface">Cómoda</span>
+              <span class="text-xs text-on-surface-variant">Espaciado amplio, ideal para lectura inmersiva.</span>
+            </span>
+          </label>
+          <label class="relative flex cursor-pointer rounded-xl border border-white/10 bg-white/5 p-4 focus-within:ring-2 focus-within:ring-primary/50 hover:bg-white/10 transition-all has-[:checked]:border-primary/50 has-[:checked]:bg-primary/10">
+            <input type="radio" name="density" value="compact" class="sr-only" />
+            <span class="flex flex-col gap-1 w-full">
+              <span class="font-semibold text-on-surface">Compacta</span>
+              <span class="text-xs text-on-surface-variant">Menos espacio entre bloques, permite ver más información.</span>
+            </span>
+          </label>
+        </div>
+      </section>
+
+      {/* Animaciones */}
+      <section>
+        <div class="mb-5 border-b border-white/10 pb-4">
+          <h2 class="text-2xl font-serif font-bold text-on-surface">Animaciones</h2>
+          <p class="text-sm text-on-surface-variant mt-1">Configura el movimiento y los efectos de transición.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="relative flex cursor-pointer rounded-xl border border-white/10 bg-white/5 p-4 focus-within:ring-2 focus-within:ring-primary/50 hover:bg-white/10 transition-all has-[:checked]:border-primary/50 has-[:checked]:bg-primary/10">
+            <input type="radio" name="animations" value="enabled" class="sr-only" />
+            <span class="flex flex-col gap-1 w-full">
+              <span class="font-semibold text-on-surface">Activadas</span>
+              <span class="text-xs text-on-surface-variant">Transiciones fluidas y efectos visuales completos.</span>
+            </span>
+          </label>
+          <label class="relative flex cursor-pointer rounded-xl border border-white/10 bg-white/5 p-4 focus-within:ring-2 focus-within:ring-primary/50 hover:bg-white/10 transition-all has-[:checked]:border-primary/50 has-[:checked]:bg-primary/10">
+            <input type="radio" name="animations" value="reduced" class="sr-only" />
+            <span class="flex flex-col gap-1 w-full">
+              <span class="font-semibold text-on-surface">Reducidas</span>
+              <span class="text-xs text-on-surface-variant">Minimiza el movimiento para evitar distracciones o mareos.</span>
+            </span>
+          </label>
+        </div>
+      </section>
+
+      <div class="mt-8 pt-6 border-t border-white/10 text-center">
+        <p class="text-xs text-on-surface-variant/70 uppercase tracking-widest font-mono font-bold flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          </svg>
+          Privacidad Local
+        </p>
+        <p class="text-sm text-on-surface-variant mt-2 max-w-md mx-auto">Tus preferencias se guardan exclusivamente en tu navegador mediante <code>localStorage</code> y nunca se envían a ningún servidor.</p>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  // Script para manejar la lógica de la página de configuración
+  
+  const initSettingsUI = () => {
+    const spoilerCheck = document.getElementById('setting-spoiler') as HTMLInputElement;
+    const textSizeRadios = document.querySelectorAll<HTMLInputElement>('input[name="textSize"]');
+    const densityRadios = document.querySelectorAll<HTMLInputElement>('input[name="density"]');
+    const animationsRadios = document.querySelectorAll<HTMLInputElement>('input[name="animations"]');
+
+    // Función para actualizar la UI desde los settings globales (que se leen de localStorage en BaseLayout)
+    const updateUIFromState = () => {
+      try {
+        const stored = localStorage.getItem('bts-lore-settings');
+        if (stored) {
+          const settings = JSON.parse(stored);
+          
+          if (spoilerCheck) spoilerCheck.checked = settings.spoilerSafe;
+          
+          textSizeRadios.forEach(r => { if (r.value === settings.textSize) r.checked = true; });
+          densityRadios.forEach(r => { if (r.value === settings.density) r.checked = true; });
+          animationsRadios.forEach(r => { if (r.value === settings.animations) r.checked = true; });
+        }
+      } catch (e) {
+        console.error("No se pudo leer la configuración local", e);
+      }
+    };
+
+    // Inicializar UI
+    updateUIFromState();
+
+    // Escuchar cambios en los inputs
+    spoilerCheck?.addEventListener('change', (e) => {
+      const checked = (e.target as HTMLInputElement).checked;
+      if (window.updateLoreSettings) window.updateLoreSettings({ spoilerSafe: checked });
+    });
+
+    textSizeRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const val = (e.target as HTMLInputElement).value as any;
+        if (window.updateLoreSettings) window.updateLoreSettings({ textSize: val });
+      });
+    });
+
+    densityRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const val = (e.target as HTMLInputElement).value as any;
+        if (window.updateLoreSettings) window.updateLoreSettings({ density: val });
+      });
+    });
+
+    animationsRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const val = (e.target as HTMLInputElement).value as any;
+        if (window.updateLoreSettings) window.updateLoreSettings({ animations: val });
+      });
+    });
+
+    // Escuchar el evento global custom para mantener sincronizada esta UI si se cambia desde el Header
+    window.addEventListener('lore-settings-updated', (e: any) => {
+      if (e.detail) {
+        if (spoilerCheck) spoilerCheck.checked = e.detail.spoilerSafe;
+      }
+    });
+  };
+
+  // Inicializar
+  initSettingsUI();
+  
+  // Soporte para transiciones de vista de Astro (si se llegaran a usar en el futuro)
+  document.addEventListener('astro:page-load', initSettingsUI);
+</script>

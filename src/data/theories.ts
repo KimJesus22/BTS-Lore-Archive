@@ -8,7 +8,8 @@ export const mockTheories: Theory[] = [
     content: 'Análisis sobre la flor que no pudo ser entregada, la sinceridad oculta y su conexión con la Magic Shop.',
     status: 'published',
     tags: ['smeraldo', 'seokjin', 'magic shop'],
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    spoilerLevel: 'none'
   },
   { 
     id: '3ff9daeb-c15c-4867-b52b-47e92da37cbb', 
@@ -17,7 +18,8 @@ export const mockTheories: Theory[] = [
     content: 'La anomalía en la línea temporal y el rol de Serendipity en el multiverso.',
     status: 'published',
     tags: ['jimin', 'serendipity', 'multiverso'],
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    spoilerLevel: 'mild'
   },
   { 
     id: '161822cb-cf9d-4c3e-bbc8-289b5c3e6022', 
@@ -26,6 +28,7 @@ export const mockTheories: Theory[] = [
     content: 'Cuántas veces regresó Seokjin en el tiempo y el costo real de salvar a los demás.',
     status: 'published',
     tags: ['time-travel', 'seokjin', 'hyyh'],
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    spoilerLevel: 'major'
   }
 ];

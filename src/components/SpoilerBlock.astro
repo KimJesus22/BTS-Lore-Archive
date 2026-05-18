@@ -1,0 +1,84 @@
+---
+/**
+ * SpoilerBlock.astro
+ * Envuelve contenido que puede contener spoilers.
+ * En modo "sin spoilers" (bts-lore-spoiler-safe = true):
+ *   - 'mild'  → difuminado con botón "Mostrar de todos modos"
+ *   - 'major' → oculto completamente con aviso
+ *   - 'none'  → visible sin cambios
+ */
+interface Props {
+  /** Nivel de spoiler: 'none' | 'mild' | 'major' */
+  level?: 'none' | 'mild' | 'major';
+  /** Clase CSS adicional */
+  class?: string;
+}
+
+const { level = 'none', class: className = '' } = Astro.props;
+---
+
+{level === 'none' ? (
+  <div class={className}>
+    <slot />
+  </div>
+) : (
+  <div
+    class={`spoiler-block relative ${className}`}
+    data-spoiler-level={level}
+    role="region"
+    aria-label={level === 'major' ? 'Contenido con spoiler mayor oculto' : 'Contenido con spoiler leve difuminado'}
+  >
+    {/* Contenido real */}
+    <div class="spoiler-content">
+      <slot />
+    </div>
+
+    {/* Overlay para mild */}
+    <div class="spoiler-overlay-mild absolute inset-0 z-10 hidden items-center justify-center rounded-2xl backdrop-blur-lg bg-surface/60 border border-amber-500/20">
+      <div class="text-center p-6">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-amber-500/15 border border-amber-500/30 mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-amber-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.64 0 8.577 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.64 0-8.577-3.007-9.963-7.178z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <p class="text-sm text-amber-300 font-semibold mb-1">Spoiler leve</p>
+        <button type="button" class="spoiler-reveal-btn text-xs text-on-surface-variant hover:text-white transition-colors underline underline-offset-2">
+          Mostrar de todos modos
+        </button>
+      </div>
+    </div>
+
+    {/* Overlay para major */}
+    <div class="spoiler-overlay-major absolute inset-0 z-10 hidden items-center justify-center rounded-2xl bg-surface/90 border border-red-500/20 backdrop-blur-2xl">
+      <div class="text-center p-6">
+        <div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-red-500/15 border border-red-500/30 mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-red-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+        </div>
+        <p class="text-sm text-red-400 font-semibold mb-1">Spoiler mayor</p>
+        <button type="button" class="spoiler-reveal-btn text-xs text-on-surface-variant hover:text-white transition-colors underline underline-offset-2">
+          Mostrar de todos modos
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+<style>
+  /* Las clases de estado se aplican dinámicamente desde spoiler-manager.ts */
+  .spoiler-block[data-spoiler-active="true"][data-spoiler-level="mild"] .spoiler-overlay-mild {
+    display: flex;
+  }
+
+  .spoiler-block[data-spoiler-active="true"][data-spoiler-level="major"] .spoiler-overlay-major {
+    display: flex;
+  }
+
+  .spoiler-block[data-spoiler-active="true"][data-spoiler-level="major"] .spoiler-content {
+    visibility: hidden;
+    max-height: 120px;
+    overflow: hidden;
+  }
+</style>

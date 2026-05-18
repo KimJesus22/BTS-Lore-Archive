@@ -4,6 +4,7 @@ import Card from '../../components/Card.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import FavoriteButton from '../../components/FavoriteButton.astro';
 import PersonalNotes from '../../components/PersonalNotes.astro';
+import SpoilerBlock from '../../components/SpoilerBlock.astro';
 import { getTheories } from '../../services/theories.service';
 import { calculateReadingTime } from '../../utils/readingTime';
 import type { Theory } from '../../types/content';
@@ -33,12 +34,12 @@ const formatDate = (value?: string) => {
 };
 
 const sharedTags = (candidate: Theory) => {
-  const currentTags = new Set((theory.tags ?? []).map((tag) => tag.toLowerCase()));
-  return (candidate.tags ?? []).filter((tag) => currentTags.has(tag.toLowerCase()));
+  const currentTags = new Set((theory.tags ?? []).map((tag: string) => tag.toLowerCase()));
+  return (candidate.tags ?? []).filter((tag: string) => currentTags.has(tag.toLowerCase()));
 };
 
 const relatedTheories = theories
-  .filter((candidate) => candidate.slug !== theory.slug && sharedTags(candidate).length > 0)
+  .filter((candidate: Theory) => candidate.slug !== theory.slug && sharedTags(candidate).length > 0)
   .slice(0, 3);
 
 const statusLabel = theory.status === 'published' ? 'Publicado' : 'Borrador';
@@ -168,7 +169,7 @@ const { blocks: contentBlocks, headings } = parseTheoryContent(theory.content);
 
       {theory.tags && theory.tags.length > 0 && (
         <div class="mt-6 flex flex-wrap gap-2">
-          {theory.tags.map((tag) => (
+          {theory.tags.map((tag: string) => (
             <span class="label-caps rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-primary-light">
               {tag}
             </span>
@@ -200,35 +201,37 @@ const { blocks: contentBlocks, headings } = parseTheoryContent(theory.content);
       </aside>
 
       <div class="glass-card p-6 md:p-10">
-        <div class="article-content">
-          {contentBlocks.map((block) => (
-            <>
-              {block.type === 'heading' && block.level === 2 && (
-                <h2 id={block.id} class="scroll-mt-28 text-headline-md font-serif text-on-surface">
-                  {block.text}
-                </h2>
-              )}
-              {block.type === 'heading' && block.level === 3 && (
-                <h3 id={block.id} class="scroll-mt-28 text-xl font-serif text-primary-light">
-                  {block.text}
-                </h3>
-              )}
-              {block.type === 'paragraph' && (
-                <p>{block.text}</p>
-              )}
-              {block.type === 'quote' && (
-                <blockquote>{block.text}</blockquote>
-              )}
-              {block.type === 'list' && (
-                <ul>
-                  {block.items.map((item) => (
-                    <li>{item}</li>
-                  ))}
-                </ul>
-              )}
-            </>
-          ))}
-        </div>
+        <SpoilerBlock level={theory.spoilerLevel}>
+          <div class="article-content">
+            {contentBlocks.map((block) => (
+              <>
+                {block.type === 'heading' && block.level === 2 && (
+                  <h2 id={block.id} class="scroll-mt-28 text-headline-md font-serif text-on-surface">
+                    {block.text}
+                  </h2>
+                )}
+                {block.type === 'heading' && block.level === 3 && (
+                  <h3 id={block.id} class="scroll-mt-28 text-xl font-serif text-primary-light">
+                    {block.text}
+                  </h3>
+                )}
+                {block.type === 'paragraph' && (
+                  <p>{block.text}</p>
+                )}
+                {block.type === 'quote' && (
+                  <blockquote>{block.text}</blockquote>
+                )}
+                {block.type === 'list' && (
+                  <ul>
+                    {block.items.map((item) => (
+                      <li>{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            ))}
+          </div>
+        </SpoilerBlock>
       </div>
     </div>
 
@@ -254,7 +257,7 @@ const { blocks: contentBlocks, headings } = parseTheoryContent(theory.content);
 
       {relatedTheories.length > 0 ? (
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {relatedTheories.map((related) => (
+          {relatedTheories.map((related: Theory) => (
             <Card
               title={related.title}
               description={related.content}

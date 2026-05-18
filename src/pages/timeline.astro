@@ -22,7 +22,8 @@ try {
 }
 
 const eraSlugById = new Map(eras.map((era) => [era.id, era.slug]));
-const filters = [
+
+const eraFilters = [
   { label: 'Todas', value: 'all' },
   { label: 'HYYH', value: 'hyyh' },
   { label: 'Wings', value: 'wings' },
@@ -32,9 +33,14 @@ const filters = [
   { label: 'Proof', value: 'proof' },
   { label: 'Solos', value: 'solos' },
 ];
+
+const sourceTypes = [
+  'MV', 'Letra', 'Short film', 'Notes', 'Webtoon',
+  'Teoría fan', 'Álbum', 'Entrevista', 'Otro'
+];
 ---
 
-<BaseLayout title="Línea de Tiempo" description="Recorre la cronología del universo narrativo de BTS y filtra eventos por era.">
+<BaseLayout title="Línea de Tiempo" description="Recorre la cronología del universo narrativo de BTS y filtra eventos por era y tipo de fuente.">
   <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
     <PageHeader
       tag="Registro Cronológico"
@@ -52,35 +58,71 @@ const filters = [
     ) : timelineEvents.length > 0 ? (
       <>
         <section class="mx-auto mb-10 max-w-4xl">
-          <div class="glass-card p-4 md:p-5">
-            <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
+          <div class="glass-card p-5 md:p-6 space-y-6">
+            
+            {/* Filtro por Era */}
+            <div>
+              <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <p class="label-caps text-primary-light">Filtrar por era</p>
-                <p id="timeline-count" class="mt-2 text-sm text-on-surface-variant">{timelineEvents.length} eventos visibles</p>
+              </div>
+              <div class="flex flex-wrap gap-2" aria-label="Filtros de era">
+                {eraFilters.map((filter) => (
+                  <button
+                    type="button"
+                    data-era-filter={filter.value}
+                    aria-pressed={filter.value === 'all' ? 'true' : 'false'}
+                    class={`era-filter rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                      filter.value === 'all'
+                        ? 'border-primary/50 bg-primary/20 text-primary-light'
+                        : 'border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-primary/35 hover:text-primary-light'
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div class="flex flex-wrap gap-2" aria-label="Filtros de cronología">
-              {filters.map((filter) => (
+            {/* Separador visual */}
+            <div class="border-t border-border/50"></div>
+
+            {/* Filtro por Tipo de Fuente */}
+            <div>
+              <p class="label-caps text-secondary-dim mb-3">Filtrar por tipo de fuente</p>
+              <div class="flex flex-wrap gap-2" aria-label="Filtros de fuente">
                 <button
                   type="button"
-                  data-filter={filter.value}
-                  aria-pressed={filter.value === 'all' ? 'true' : 'false'}
-                  class={`timeline-filter rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-                    filter.value === 'all'
-                      ? 'border-primary/50 bg-primary/20 text-primary-light'
-                      : 'border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-primary/35 hover:text-primary-light'
-                  }`}
+                  data-source-filter="all"
+                  aria-pressed="true"
+                  class="source-filter rounded-full border px-4 py-2 text-sm font-semibold transition-colors border-secondary-dim/50 bg-secondary-dim/15 text-secondary-dim"
                 >
-                  {filter.label}
+                  Todas
                 </button>
-              ))}
+                {sourceTypes.map((st) => (
+                  <button
+                    type="button"
+                    data-source-filter={st}
+                    aria-pressed="false"
+                    class="source-filter rounded-full border px-4 py-2 text-sm font-semibold transition-colors border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-secondary-dim/35 hover:text-secondary-dim"
+                  >
+                    {st}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Contador */}
+            <div class="pt-2 border-t border-border/50">
+              <p id="timeline-count" class="text-sm text-on-surface-variant">
+                {timelineEvents.length} evento{timelineEvents.length === 1 ? '' : 's'} visible{timelineEvents.length === 1 ? '' : 's'}
+              </p>
+            </div>
+
           </div>
         </section>
 
         <div id="timeline-empty-filter" class="mx-auto hidden max-w-4xl">
-          <EmptyState title="No hay eventos en esta era" description="Selecciona otra era o vuelve a Todas para continuar explorando la cronología." />
+          <EmptyState title="Sin coincidencias" description="No hay eventos que coincidan con esta combinación de filtros. Prueba ampliando tu búsqueda." />
         </div>
 
         <div id="timeline-list" class="max-w-4xl mx-auto space-y-12 md:space-y-14">
@@ -91,6 +133,8 @@ const filters = [
               date={event.event_date || 'Sin fecha'}
               title={event.title}
               description={event.description}
+              sourceType={event.source_type}
+              spoilerLevel={event.spoilerLevel}
             />
           ))}
         </div>
@@ -107,31 +151,44 @@ const filters = [
 </BaseLayout>
 
 <script>
-  const filterButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.timeline-filter'));
+  const eraButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.era-filter'));
+  const sourceButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.source-filter'));
   const events = Array.from(document.querySelectorAll<HTMLElement>('.timeline-event'));
   const countLabel = document.getElementById('timeline-count');
   const emptyState = document.getElementById('timeline-empty-filter');
 
-  const setActiveButton = (activeFilter: string) => {
-    filterButtons.forEach((button) => {
-      const isActive = button.dataset.filter === activeFilter;
-      button.setAttribute('aria-pressed', String(isActive));
-      button.classList.toggle('border-primary/50', isActive);
-      button.classList.toggle('bg-primary/20', isActive);
-      button.classList.toggle('text-primary-light', isActive);
-      button.classList.toggle('border-white/10', !isActive);
-      button.classList.toggle('bg-white/[0.03]', !isActive);
-      button.classList.toggle('text-on-surface-variant', !isActive);
-    });
-  };
+  let currentEra = 'all';
+  let currentSource = 'all';
 
-  const applyFilter = (filter: string) => {
+  function setActiveGroup(buttons: HTMLButtonElement[], activeValue: string, filterAttr: string, activeColor: string, activeBg: string) {
+    buttons.forEach((btn) => {
+      const val = btn.dataset[filterAttr] ?? '';
+      const isActive = val === activeValue;
+      btn.setAttribute('aria-pressed', String(isActive));
+
+      // Reset all to default
+      btn.classList.remove('border-primary/50', 'bg-primary/20', 'text-primary-light',
+                           'border-secondary-dim/50', 'bg-secondary-dim/15', 'text-secondary-dim');
+      btn.classList.add('border-white/10', 'bg-white/[0.03]', 'text-on-surface-variant');
+
+      if (isActive) {
+        btn.classList.remove('border-white/10', 'bg-white/[0.03]', 'text-on-surface-variant');
+        btn.classList.add(activeColor, activeBg,
+          filterAttr === 'eraFilter' ? 'text-primary-light' : 'text-secondary-dim');
+      }
+    });
+  }
+
+  function applyFilters() {
     let visibleCount = 0;
 
     events.forEach((event) => {
-      const shouldShow = filter === 'all' || event.dataset.era === filter;
+      const matchesEra = currentEra === 'all' || event.dataset.era === currentEra;
+      const matchesSource = currentSource === 'all' || event.dataset.source === currentSource;
+
+      const shouldShow = matchesEra && matchesSource;
       event.classList.toggle('hidden', !shouldShow);
-      if (shouldShow) visibleCount += 1;
+      if (shouldShow) visibleCount++;
     });
 
     if (countLabel) {
@@ -139,12 +196,22 @@ const filters = [
     }
 
     emptyState?.classList.toggle('hidden', visibleCount > 0);
-    setActiveButton(filter);
-  };
 
-  filterButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      applyFilter(button.dataset.filter ?? 'all');
+    setActiveGroup(eraButtons, currentEra, 'eraFilter', 'border-primary/50', 'bg-primary/20');
+    setActiveGroup(sourceButtons, currentSource, 'sourceFilter', 'border-secondary-dim/50', 'bg-secondary-dim/15');
+  }
+
+  eraButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      currentEra = btn.dataset.eraFilter ?? 'all';
+      applyFilters();
+    });
+  });
+
+  sourceButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      currentSource = btn.dataset.sourceFilter ?? 'all';
+      applyFilters();
     });
   });
 </script>

@@ -5,12 +5,15 @@ interface Props {
   description: string;
   id?: string;
   eraSlug?: string;
+  sourceType?: string;
+  spoilerLevel?: 'none' | 'mild' | 'major';
 }
 
-const { date, title, description, id, eraSlug = 'sin-era' } = Astro.props;
+const { date, title, description, id, eraSlug = 'sin-era', sourceType, spoilerLevel = 'none' } = Astro.props;
+import SpoilerBlock from './SpoilerBlock.astro';
 ---
 
-<div id={id} data-era={eraSlug} class="timeline-event relative scroll-mt-28 pl-10 md:pl-0">
+<div id={id} data-era={eraSlug} data-source={sourceType ?? ''} class="timeline-event relative scroll-mt-28 pl-10 md:pl-0">
   <div class="md:grid md:grid-cols-5 md:gap-8 items-start">
     <div class="md:col-span-1 md:text-right mb-2 md:mb-0 pt-1">
       <span class="inline-flex rounded-full border border-secondary-dim/30 bg-secondary-dim/10 px-3 py-1.5 label-caps text-secondary-dim shadow-[0_0_18px_rgba(233,195,73,0.12)]">{date}</span>
@@ -23,8 +26,17 @@ const { date, title, description, id, eraSlug = 'sin-era' } = Astro.props;
     <div class="md:hidden absolute left-[-3px] w-4 h-4 bg-primary rounded-full top-2 shadow-[0_0_18px_rgba(109,40,217,0.9)] ring-4 ring-primary/15"></div>
 
     <div class="md:col-span-4 glass-card p-7 md:p-8">
-      <h3 class="font-serif text-xl md:text-2xl font-bold text-on-surface mb-3">{title}</h3>
-      <p class="text-on-surface-variant font-sans text-sm md:text-base leading-relaxed">{description}</p>
+      <SpoilerBlock level={spoilerLevel}>
+        <div class="flex items-center gap-3 mb-3">
+          <h3 class="font-serif text-xl md:text-2xl font-bold text-on-surface">{title}</h3>
+          {sourceType && (
+            <span class="flex-shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest border border-primary/30 bg-primary/15 text-primary-light">
+              {sourceType}
+            </span>
+          )}
+        </div>
+        <p class="text-on-surface-variant font-sans text-sm md:text-base leading-relaxed">{description}</p>
+      </SpoilerBlock>
     </div>
   </div>
 </div>

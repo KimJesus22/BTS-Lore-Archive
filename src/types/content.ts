@@ -21,6 +21,7 @@ export interface TimelineEvent {
   source_url?: string;
   order_index: number;
   created_at: string;
+  spoilerLevel?: 'none' | 'mild' | 'major';
 }
 
 export interface Member {
@@ -43,6 +44,7 @@ export interface Theory {
   tags?: string[];
   created_at: string;
   updated_at?: string;
+  spoilerLevel?: 'none' | 'mild' | 'major';
 }
 
 export interface GlossaryTerm {

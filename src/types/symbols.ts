@@ -10,4 +10,5 @@ export interface SymbolItem {
   relatedMembers: string[];
   relatedTheories: string[];
   tags: string[];
+  spoilerLevel?: 'none' | 'mild' | 'major';
 }

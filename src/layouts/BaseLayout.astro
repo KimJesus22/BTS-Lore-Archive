@@ -63,5 +63,106 @@ const imageUrl = new URL(image, Astro.url.origin).toString();
       <slot />
     </main>
     <Footer />
+
+    {/* Global Settings Manager — runs on every page */}
+    <script>
+      const OLD_SPOILER_KEY = 'bts-lore-spoiler-safe';
+      const SETTINGS_KEY = 'bts-lore-settings';
+
+      interface LoreSettings {
+        spoilerSafe: boolean;
+        textSize: 'small' | 'normal' | 'large';
+        density: 'comfortable' | 'compact';
+        animations: 'enabled' | 'reduced';
+      }
+
+      const defaultSettings: LoreSettings = {
+        spoilerSafe: false,
+        textSize: 'normal',
+        density: 'comfortable',
+        animations: 'enabled',
+      };
+
+      // Expose type and global function to the window for other scripts to use
+      declare global {
+        interface Window {
+          updateLoreSettings: (partial: Partial<LoreSettings>) => void;
+        }
+      }
+
+      function getSettings(): LoreSettings {
+        try {
+          // Migration from old spoiler key
+          const oldSpoiler = localStorage.getItem(OLD_SPOILER_KEY);
+          if (oldSpoiler !== null) {
+            const migrated: LoreSettings = { ...defaultSettings, spoilerSafe: oldSpoiler === 'true' };
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(migrated));
+            localStorage.removeItem(OLD_SPOILER_KEY);
+            return migrated;
+          }
+
+          const stored = localStorage.getItem(SETTINGS_KEY);
+          if (stored) {
+            return { ...defaultSettings, ...JSON.parse(stored) };
+          }
+        } catch (e) {
+          console.warn('Error reading settings from localStorage', e);
+        }
+        return defaultSettings;
+      }
+
+      function applySettings(settings: LoreSettings) {
+        const html = document.documentElement;
+
+        // Apply Spoiler classes and data attributes
+        document.querySelectorAll<HTMLElement>('.spoiler-block').forEach((block) => {
+          block.dataset.spoilerActive = String(settings.spoilerSafe);
+        });
+        document.querySelectorAll<HTMLElement>('.spoiler-toggle').forEach((toggle) => {
+          toggle.dataset.active = String(settings.spoilerSafe);
+          toggle.setAttribute('aria-pressed', String(settings.spoilerSafe));
+        });
+
+        // Apply Text Size
+        html.classList.remove('text-size-small', 'text-size-normal', 'text-size-large');
+        html.classList.add(`text-size-${settings.textSize}`);
+
+        // Apply Density
+        html.classList.remove('density-comfortable', 'density-compact');
+        html.classList.add(`density-${settings.density}`);
+
+        // Apply Animations
+        html.classList.remove('animations-enabled', 'animations-reduced');
+        html.classList.add(`animations-${settings.animations}`);
+      }
+
+      window.updateLoreSettings = (partial: Partial<LoreSettings>) => {
+        const current = getSettings();
+        const updated = { ...current, ...partial };
+        try {
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(updated));
+        } catch (e) {
+          console.warn('Error saving settings to localStorage', e);
+        }
+        applySettings(updated);
+        
+        // Dispatch custom event in case components need to react directly
+        window.dispatchEvent(new CustomEvent('lore-settings-updated', { detail: updated }));
+      };
+
+      // "Mostrar de todos modos" buttons inside SpoilerBlocks
+      document.querySelectorAll<HTMLButtonElement>('.spoiler-reveal-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const block = btn.closest<HTMLElement>('.spoiler-block');
+          if (block) {
+            block.dataset.spoilerActive = 'false';
+          }
+        });
+      });
+
+      // Initial apply
+      const initialSettings = getSettings();
+      applySettings(initialSettings);
+    </script>
   </body>
 </html>

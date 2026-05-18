@@ -8,6 +8,7 @@ export const mockTimelineEvents: TimelineEvent[] = [
     slug: 'el-reencuentro',
     event_date: 'Año 22, 11 Abril', 
     description: 'Seokjin se da cuenta de la tragedia que cayó sobre sus amigos e intenta regresar en el tiempo.',
+    source_type: 'MV',
     order_index: 1,
     created_at: new Date().toISOString()
   },
@@ -18,8 +19,10 @@ export const mockTimelineEvents: TimelineEvent[] = [
     slug: 'la-pelea',
     event_date: 'Año 22, 2 Mayo', 
     description: 'Un conflicto que termina con consecuencias drásticas en diferentes líneas temporales.',
+    source_type: 'Short film',
     order_index: 2,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    spoilerLevel: 'major'
   },
   { 
     id: '25e6dbfe-f192-4d2c-9a29-2ef5dc6db8f0', 
@@ -28,6 +31,7 @@ export const mockTimelineEvents: TimelineEvent[] = [
     slug: 'taehyung-en-el-mar',
     event_date: 'Año 22, 22 Mayo', 
     description: 'El grupo viaja al mar, creyendo que por fin están juntos, pero las cosas no son lo que parecen.',
+    source_type: 'MV',
     order_index: 3,
     created_at: new Date().toISOString()
   },
@@ -38,6 +42,7 @@ export const mockTimelineEvents: TimelineEvent[] = [
     slug: 'el-diario',
     event_date: 'Año 22, 30 Agosto', 
     description: 'El descubrimiento del diario que puede cambiar el curso del destino.',
+    source_type: 'Notes',
     order_index: 4,
     created_at: new Date().toISOString()
   }

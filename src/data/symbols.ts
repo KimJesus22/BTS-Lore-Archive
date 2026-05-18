@@ -13,6 +13,7 @@ export const mockSymbols: SymbolItem[] = [
     relatedMembers: ['Jin'],
     relatedTheories: ['la-flor-smeraldo', 'el-viajero-del-tiempo'],
     tags: ['flor', 'verdad', 'oculto'],
+    spoilerLevel: 'none'
   },
   {
     id: 'sym-2',
@@ -26,6 +27,7 @@ export const mockSymbols: SymbolItem[] = [
     relatedMembers: ['Jimin'],
     relatedTheories: ['el-gato-calico'],
     tags: ['destino', 'jimin', 'anomalía'],
+    spoilerLevel: 'mild'
   },
   {
     id: 'sym-3',
@@ -39,6 +41,7 @@ export const mockSymbols: SymbolItem[] = [
     relatedMembers: ['Jin'],
     relatedTheories: ['el-viajero-del-tiempo', 'efecto-mariposa'],
     tags: ['recuerdos', 'bucle temporal', 'observador'],
+    spoilerLevel: 'major'
   },
   {
     id: 'sym-4',
@@ -52,5 +55,6 @@ export const mockSymbols: SymbolItem[] = [
     relatedMembers: ['RM', 'Jin'],
     relatedTheories: ['espejos-paralelos'],
     tags: ['identidad', 'sombra', 'reflejo'],
+    spoilerLevel: 'mild'
   }
 ];

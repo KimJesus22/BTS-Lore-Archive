@@ -45,6 +45,7 @@ export const guides: Guide[] = [
       },
     ],
     tags: ['hyyh', 'juventud', 'inicio'],
+    spoilerLevel: 'none'
   },
   {
     slug: 'de-wings-a-love-yourself',
@@ -85,6 +86,7 @@ export const guides: Guide[] = [
       },
     ],
     tags: ['wings', 'love yourself', 'transición'],
+    spoilerLevel: 'none'
   },
   {
     slug: 'simbolos-importantes',
@@ -120,6 +122,7 @@ export const guides: Guide[] = [
       },
     ],
     tags: ['símbolos', 'visual', 'glosario'],
+    spoilerLevel: 'mild'
   },
   {
     slug: 'teorias-populares',
@@ -160,6 +163,7 @@ export const guides: Guide[] = [
       },
     ],
     tags: ['teorías', 'comunidad', 'análisis'],
+    spoilerLevel: 'major'
   },
   {
     slug: 'cronologia-esencial',
@@ -200,5 +204,6 @@ export const guides: Guide[] = [
       },
     ],
     tags: ['cronología', 'eras', 'orden'],
+    spoilerLevel: 'none'
   },
 ];

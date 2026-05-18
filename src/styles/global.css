@@ -71,3 +71,37 @@
     background-position: -200% 0;
   }
 }
+
+/* 
+  Global Settings Classes 
+*/
+
+/* Text Size */
+html.text-size-small { font-size: 14px; }
+html.text-size-normal { font-size: 16px; }
+html.text-size-large { font-size: 18px; }
+
+/* Density */
+.density-compact .glass-card { 
+  padding: 1.25rem !important; 
+}
+.density-compact .py-stack-lg { 
+  padding-top: 3rem !important; 
+  padding-bottom: 3rem !important; 
+}
+.density-compact .article-content p { 
+  line-height: 1.75 !important; 
+}
+.density-compact .gap-8, 
+.density-compact .gap-12 { 
+  gap: 1.5rem !important; 
+}
+
+/* Animations */
+.animations-reduced *, 
+.animations-reduced *::before, 
+.animations-reduced *::after { 
+  animation-duration: 0.01ms !important; 
+  transition-duration: 0.01ms !important; 
+  scroll-behavior: auto !important; 
+}
