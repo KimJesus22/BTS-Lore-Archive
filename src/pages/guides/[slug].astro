@@ -1,0 +1,157 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { guides } from '../../data/guides';
+import { DIFFICULTY_LABELS } from '../../types/guides';
+import type { Guide, GuideDifficulty } from '../../types/guides';
+
+export async function getStaticPaths() {
+  return guides.map((guide) => {
+    return {
+      params: { slug: guide.slug },
+      props: { guide },
+    };
+  });
+}
+
+interface Props {
+  guide: Guide;
+}
+
+const { guide } = Astro.props;
+
+const difficultyColors: Record<GuideDifficulty, { badge: string; icon: string }> = {
+  'inicial': {
+    badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    icon: '●',
+  },
+  'media': {
+    badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    icon: '●●',
+  },
+  'avanzada': {
+    badge: 'bg-red-500/15 text-red-400 border-red-500/30',
+    icon: '●●●',
+  },
+};
+---
+
+<BaseLayout
+  title={guide.title}
+  description={guide.description}
+  canonical={`/guides/${guide.slug}`}
+>
+  <article class="max-w-[800px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    
+    {/* Navigation back */}
+    <a href="/guides" class="mb-10 inline-flex items-center text-sm font-semibold text-on-surface-variant transition-colors hover:text-primary-light">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="mr-2 h-4 w-4" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      </svg>
+      Volver a rutas de lectura
+    </a>
+
+    {/* Header */}
+    <header class="mb-12 border-b border-border/50 pb-10">
+      <div class="mb-6 flex flex-wrap items-center gap-3">
+        <span class={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider border ${difficultyColors[guide.difficulty].badge}`}>
+          <span class="text-[8px] tracking-[2px]">{difficultyColors[guide.difficulty].icon}</span>
+          {DIFFICULTY_LABELS[guide.difficulty]}
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider border border-white/10 bg-white/5 text-on-surface-variant">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {guide.estimatedTime}
+        </span>
+      </div>
+
+      <h1 class="text-display-lg-mobile md:text-display-lg font-serif font-bold text-on-surface mb-6">
+        {guide.title}
+      </h1>
+      
+      <p class="text-body-md md:text-body-lg text-on-surface-variant leading-relaxed">
+        {guide.description}
+      </p>
+
+      {guide.tags && guide.tags.length > 0 && (
+        <div class="mt-8 flex flex-wrap gap-2">
+          {guide.tags.map((tag) => (
+            <span class="label-caps rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-primary-light">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </header>
+
+    {/* Steps Timeline */}
+    <div class="relative">
+      {/* Central vertical line */}
+      <div class="absolute left-[27px] md:left-[39px] top-4 bottom-12 w-[2px] bg-gradient-to-b from-primary/40 via-white/10 to-transparent"></div>
+
+      <div class="space-y-8">
+        {guide.steps.map((step, index) => (
+          <div class="step-card relative flex items-start gap-6 md:gap-8 group" style={`animation-delay: ${index * 0.1}s`}>
+            {/* Number node */}
+            <div class="relative z-10 flex-shrink-0 flex items-center justify-center w-14 h-14 md:w-20 md:h-20 rounded-full border-2 border-surface bg-surface-container-high text-on-surface font-serif text-xl md:text-2xl font-bold shadow-[0_0_20px_rgba(109,40,217,0.15)] transition-colors group-hover:border-primary/50 group-hover:text-primary-light group-hover:bg-surface">
+              {index + 1}
+            </div>
+
+            {/* Content card */}
+            <a href={step.href} class="glass-card flex-1 p-5 md:p-8 hover:scale-[1.01] transition-transform">
+              <h2 class="text-xl md:text-2xl font-serif font-bold text-on-surface mb-3 group-hover:text-primary-light transition-colors">
+                {step.label}
+              </h2>
+              {step.hint && (
+                <p class="text-sm md:text-base text-on-surface-variant leading-relaxed mb-6">
+                  {step.hint}
+                </p>
+              )}
+              
+              <div class="inline-flex items-center text-sm font-semibold text-primary-light">
+                Leer artículo
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 ml-1.5 transition-transform group-hover:translate-x-1">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </div>
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Completion state */}
+    <div class="mt-20 text-center p-8 border border-white/10 rounded-2xl bg-gradient-to-b from-white/[0.03] to-transparent">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 border border-primary/30 mb-6 text-primary-light">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h3 class="text-2xl font-serif font-bold text-on-surface mb-3">Ruta completada</h3>
+      <p class="text-on-surface-variant mb-8 max-w-md mx-auto">
+        Has llegado al final de esta guía. Si quieres seguir explorando, prueba con otra ruta de lectura o navega libremente por el archivo.
+      </p>
+      <a href="/guides" class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-primary-light hover:shadow-[0_0_24px_rgba(109,40,217,0.4)]">
+        Ver más rutas
+      </a>
+    </div>
+
+  </article>
+</BaseLayout>
+
+<style>
+  .step-card {
+    animation: step-fade-in 0.6s ease-out both;
+  }
+
+  @keyframes step-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>

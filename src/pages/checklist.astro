@@ -1,0 +1,321 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { getEras } from '../services/eras.service';
+import { getTheories } from '../services/theories.service';
+import { getTimelineEvents } from '../services/timeline.service';
+import { getGlossaryTerms } from '../services/glossary.service';
+
+const eras = await getEras();
+const theories = await getTheories();
+const timelineEvents = await getTimelineEvents();
+const glossaryTerms = await getGlossaryTerms();
+
+interface ChecklistSection {
+  id: string;
+  label: string;
+  icon: string;
+  color: string;
+  items: { id: string; title: string; href: string }[];
+}
+
+const sections: ChecklistSection[] = [
+  {
+    id: 'eras',
+    label: 'Eras',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z"/></svg>',
+    color: 'primary',
+    items: eras.map((e) => ({ id: `era-${e.id}`, title: e.title, href: `/eras/${e.id}` })),
+  },
+  {
+    id: 'timeline',
+    label: 'Cronología',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+    color: 'secondary',
+    items: timelineEvents.map((e) => ({ id: `timeline-${e.id}`, title: e.title, href: '/timeline' })),
+  },
+  {
+    id: 'theories',
+    label: 'Teorías',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>',
+    color: 'amber',
+    items: theories.map((t) => ({ id: `theory-${t.id}`, title: t.title, href: `/theories/${t.slug}` })),
+  },
+  {
+    id: 'glossary',
+    label: 'Glosario',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>',
+    color: 'emerald',
+    items: glossaryTerms.map((g) => ({ id: `glossary-${g.id}`, title: g.term, href: '/glossary' })),
+  },
+];
+
+const totalItems = sections.reduce((sum, s) => sum + s.items.length, 0);
+const hasContent = totalItems > 0;
+---
+
+<BaseLayout
+  title="Checklist de exploración"
+  description="Marca qué partes del lore de BTS ya exploraste. Tu progreso se guarda automáticamente en tu navegador."
+  canonical="/checklist"
+>
+  <div class="max-w-[960px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader
+      tag="Tu progreso"
+      title="Checklist de exploración"
+      description="Marca cada sección del lore que ya hayas explorado. Tu progreso se guarda automáticamente en este navegador."
+    />
+
+    {hasContent ? (
+      <>
+        {/* Global progress */}
+        <div id="checklist-progress" class="glass-card p-6 mb-12">
+          <div class="flex items-center justify-between mb-3">
+            <span class="label-caps text-on-surface-variant">Exploración total</span>
+            <span class="font-mono text-sm font-bold">
+              <span id="progress-count" class="text-primary-light">0</span>
+              <span class="text-on-surface-variant">/{totalItems}</span>
+            </span>
+          </div>
+          <div class="h-2.5 rounded-full bg-white/10 overflow-hidden">
+            <div
+              id="progress-bar"
+              class="h-full rounded-full bg-gradient-to-r from-primary to-primary-light transition-all duration-500 ease-out"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div class="flex items-center justify-between mt-2">
+            <p id="progress-percent" class="text-xs text-on-surface-variant/70">0%</p>
+            <button
+              id="reset-btn"
+              type="button"
+              class="text-xs text-on-surface-variant/50 hover:text-red-400 transition-colors hidden"
+            >
+              Reiniciar progreso
+            </button>
+          </div>
+        </div>
+
+        {/* Sections */}
+        <div class="space-y-10">
+          {sections.map((section) => section.items.length > 0 && (
+            <section class="checklist-section" data-section-id={section.id}>
+              {/* Section header */}
+              <div class="flex items-center gap-3 mb-5 pb-3 border-b border-border/50">
+                <span class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/5 text-on-surface-variant border border-white/10">
+                  <Fragment set:html={section.icon} />
+                </span>
+                <h2 class="text-lg font-serif font-bold text-on-surface">{section.label}</h2>
+                <span class="ml-auto font-mono text-xs text-on-surface-variant bg-white/5 rounded-full px-2.5 py-0.5">
+                  <span class="section-count" data-section={section.id}>0</span>/{section.items.length}
+                </span>
+              </div>
+
+              {/* Items */}
+              <div class="space-y-3">
+                {section.items.map((item) => (
+                  <label
+                    class="checklist-item glass-card flex items-center gap-4 p-4 cursor-pointer select-none group"
+                    data-item-id={item.id}
+                  >
+                    {/* Custom checkbox */}
+                    <span class="checkbox-visual flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-md border-2 border-white/20 bg-white/5 transition-all group-hover:border-primary/50">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4 text-primary-light opacity-0 scale-50 transition-all check-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                    </span>
+
+                    {/* Hidden native checkbox for accessibility */}
+                    <input
+                      type="checkbox"
+                      class="sr-only checklist-input"
+                      data-id={item.id}
+                      aria-label={`Marcar como explorado: ${item.title}`}
+                    />
+
+                    {/* Label text */}
+                    <span class="item-label flex-1 text-sm font-sans text-on-surface transition-all">
+                      {item.title}
+                    </span>
+
+                    {/* Link to explore */}
+                    <a
+                      href={item.href}
+                      class="flex-shrink-0 text-xs text-on-surface-variant/50 hover:text-primary-light transition-colors"
+                      onclick="event.stopPropagation()"
+                    >
+                      Explorar →
+                    </a>
+                  </label>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        {/* Completion celebration (hidden by default) */}
+        <div id="completion-banner" class="hidden mt-12 text-center p-8 border border-primary/30 rounded-2xl bg-gradient-to-b from-primary/[0.08] to-transparent">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 border border-primary/30 mb-6 text-primary-light">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.562.562 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+            </svg>
+          </div>
+          <h3 class="text-2xl font-serif font-bold text-on-surface mb-3">¡Exploración completa!</h3>
+          <p class="text-on-surface-variant max-w-md mx-auto">
+            Has recorrido todo el contenido del archivo. Vuelve cuando se publiquen nuevas eras, teorías o eventos.
+          </p>
+        </div>
+      </>
+    ) : (
+      <div class="glass-card p-12 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 border border-white/10 mb-6 text-on-surface-variant">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-serif font-bold text-on-surface mb-3">Sin contenido todavía</h3>
+        <p class="text-on-surface-variant text-sm max-w-sm mx-auto mb-6">
+          Cuando se publiquen eras, eventos, teorías y términos, aparecerán aquí como items que puedes marcar.
+        </p>
+        <a href="/" class="inline-flex text-sm font-semibold text-primary-light hover:text-white transition-colors">
+          Volver al inicio
+        </a>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  /* Checked state styling */
+  .checklist-item[data-checked="true"] .checkbox-visual {
+    @apply border-primary bg-primary/30;
+  }
+
+  .checklist-item[data-checked="true"] .check-icon {
+    @apply opacity-100 scale-100;
+  }
+
+  .checklist-item[data-checked="true"] .item-label {
+    @apply text-on-surface-variant line-through decoration-white/20;
+  }
+
+  .checklist-section {
+    animation: section-fade 0.5s ease-out both;
+  }
+
+  @keyframes section-fade {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .checklist-section:nth-child(1) { animation-delay: 0.05s; }
+  .checklist-section:nth-child(2) { animation-delay: 0.1s; }
+  .checklist-section:nth-child(3) { animation-delay: 0.15s; }
+  .checklist-section:nth-child(4) { animation-delay: 0.2s; }
+</style>
+
+<script>
+  const STORAGE_KEY = 'bts-lore-checklist';
+
+  /** Load checked IDs from localStorage */
+  function loadChecked(): Set<string> {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return new Set();
+      const parsed = JSON.parse(raw);
+      return new Set(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      return new Set();
+    }
+  }
+
+  /** Save checked IDs to localStorage */
+  function saveChecked(checked: Set<string>): void {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...checked]));
+  }
+
+  /** Update all progress indicators in the DOM */
+  function updateProgress(checked: Set<string>): void {
+    const allItems = document.querySelectorAll<HTMLElement>('.checklist-item');
+    const totalItems = allItems.length;
+    const checkedCount = checked.size;
+    const percent = totalItems > 0 ? Math.round((checkedCount / totalItems) * 100) : 0;
+
+    // Global progress
+    const progressCount = document.getElementById('progress-count');
+    const progressBar = document.getElementById('progress-bar');
+    const progressPercent = document.getElementById('progress-percent');
+    const resetBtn = document.getElementById('reset-btn');
+    const completionBanner = document.getElementById('completion-banner');
+
+    if (progressCount) progressCount.textContent = String(checkedCount);
+    if (progressBar) progressBar.style.width = `${percent}%`;
+    if (progressPercent) progressPercent.textContent = `${percent}%`;
+    if (resetBtn) resetBtn.classList.toggle('hidden', checkedCount === 0);
+    if (completionBanner) completionBanner.classList.toggle('hidden', percent < 100);
+
+    // Per-section counts
+    document.querySelectorAll<HTMLElement>('.checklist-section').forEach((section) => {
+      const sectionId = section.dataset.sectionId;
+      const sectionItems = section.querySelectorAll<HTMLElement>('.checklist-item');
+      let sectionChecked = 0;
+
+      sectionItems.forEach((item) => {
+        if (checked.has(item.dataset.itemId ?? '')) sectionChecked++;
+      });
+
+      const counter = section.querySelector(`.section-count[data-section="${sectionId}"]`);
+      if (counter) counter.textContent = String(sectionChecked);
+    });
+  }
+
+  /** Apply visual checked state to DOM elements */
+  function applyState(checked: Set<string>): void {
+    document.querySelectorAll<HTMLElement>('.checklist-item').forEach((item) => {
+      const id = item.dataset.itemId ?? '';
+      const isChecked = checked.has(id);
+
+      item.dataset.checked = String(isChecked);
+
+      const input = item.querySelector<HTMLInputElement>('.checklist-input');
+      if (input) input.checked = isChecked;
+    });
+
+    updateProgress(checked);
+  }
+
+  // Initialize
+  const checked = loadChecked();
+  applyState(checked);
+
+  // Toggle handler
+  document.querySelectorAll<HTMLInputElement>('.checklist-input').forEach((input) => {
+    input.addEventListener('change', () => {
+      const id = input.dataset.id ?? '';
+
+      if (input.checked) {
+        checked.add(id);
+      } else {
+        checked.delete(id);
+      }
+
+      saveChecked(checked);
+      applyState(checked);
+    });
+  });
+
+  // Reset handler
+  document.getElementById('reset-btn')?.addEventListener('click', () => {
+    if (!confirm('¿Deseas reiniciar todo tu progreso de exploración?')) return;
+
+    checked.clear();
+    saveChecked(checked);
+    applyState(checked);
+  });
+</script>

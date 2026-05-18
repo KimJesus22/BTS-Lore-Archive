@@ -1,0 +1,89 @@
+---
+import { getEras } from '../services/eras.service';
+import { getTimelineEvents } from '../services/timeline.service';
+import { getTheories } from '../services/theories.service';
+import { getGlossaryTerms } from '../services/glossary.service';
+import { getMembers } from '../services/members.service';
+
+interface Props {
+  title?: string;
+  description?: string;
+  compact?: boolean;
+}
+
+const {
+  title = 'Estadísticas del archivo',
+  description = 'Un resumen vivo del contenido disponible en BTS Lore Archive.',
+  compact = false,
+} = Astro.props;
+
+const [eras, timelineEvents, theories, glossaryTerms, members] = await Promise.all([
+  getEras(),
+  getTimelineEvents(),
+  getTheories(),
+  getGlossaryTerms(),
+  getMembers(),
+]);
+
+const dates = [
+  ...eras.map((item) => item.created_at),
+  ...timelineEvents.map((item) => item.created_at),
+  ...theories.flatMap((item) => [item.created_at, item.updated_at].filter(Boolean) as string[]),
+  ...glossaryTerms.map((item) => item.created_at),
+  ...members.map((item) => item.created_at),
+]
+  .map((value) => new Date(value))
+  .filter((date) => !Number.isNaN(date.getTime()));
+
+const latestDate = dates.length > 0
+  ? new Date(Math.max(...dates.map((date) => date.getTime())))
+  : null;
+
+const formatDate = (date: Date | null) => {
+  if (!date) return 'Sin datos todavía';
+
+  return new Intl.DateTimeFormat('es-MX', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
+};
+
+const stats = [
+  { label: 'Eras', value: eras.length, detail: 'Arcos narrativos' },
+  { label: 'Eventos', value: timelineEvents.length, detail: 'Cronología' },
+  { label: 'Teorías', value: theories.length, detail: 'Lecturas del lore' },
+  { label: 'Glosario', value: glossaryTerms.length, detail: 'Términos clave' },
+  { label: 'Miembros', value: members.length, detail: 'Perfiles' },
+];
+---
+
+<section class={compact ? 'space-y-5' : 'py-stack-lg'}>
+  <div class={compact ? 'mb-5' : 'mx-auto mb-10 max-w-3xl text-center'}>
+    <p class="label-caps text-primary-light">Archivo vivo</p>
+    <h2 class="mt-3 text-headline-md md:text-headline-lg font-serif text-on-surface">{title}</h2>
+    <p class={`${compact ? 'mt-3 text-sm' : 'mt-4 text-body-md'} leading-relaxed text-on-surface-variant`}>
+      {description}
+    </p>
+  </div>
+
+  <div class={`grid grid-cols-1 gap-4 ${compact ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-2 lg:grid-cols-5'}`}>
+    {stats.map((stat) => (
+      <article class="glass-card p-5">
+        <p class="label-caps text-on-surface-variant">{stat.label}</p>
+        <p class="mt-3 font-serif text-4xl font-bold text-on-surface">{stat.value}</p>
+        <p class="mt-2 text-sm text-on-surface-variant">{stat.detail}</p>
+      </article>
+    ))}
+  </div>
+
+  <div class="mt-4 glass-card flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="label-caps text-secondary-dim">Última actualización</p>
+      <p class="mt-2 text-lg font-serif text-on-surface">{formatDate(latestDate)}</p>
+    </div>
+    <p class="max-w-xl text-sm leading-relaxed text-on-surface-variant">
+      Se calcula con la fecha más reciente disponible entre eras, eventos, teorías, glosario y miembros.
+    </p>
+  </div>
+</section>

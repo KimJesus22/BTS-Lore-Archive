@@ -67,4 +67,9 @@ El proyecto se encuentra en la **Fase 5 (Comparación de Eras, Notas Privadas y 
   - Integración de meta descripciones dinámicas ajustables por página en `BaseLayout.astro`.
   - Página de error `404.astro` totalmente tematizada en concordancia con el diseño cósmico.
 - **Escritura Directa:** El panel `/admin` cuenta con 4 formularios funcionales (`EraForm`, `TimelineForm`, `TheoryForm`, `GlossaryForm`) en el lado del cliente (Client-side JS). Los datos se validan, se autogeneran sus UUIDs y se guardan directamente en **InsForge**.
+- **Roadmap del Proyecto:** Página `/roadmap` con un tablero Kanban estático para comunicar el progreso y los futuros desarrollos de la plataforma a la comunidad.
+- **Rutas de Lectura (Guías):** Una ruta curada `/guides` que ayuda a los nuevos usuarios a navegar la complejidad del lore, presentando líneas de tiempo verticales que unen artículos.
+- **Checklist de Exploración Local:** Herramienta interactiva en `/checklist` que agrupa todo el contenido (eras, teorías, eventos, glosario) y usa `localStorage` para que el usuario guarde su progreso de exploración con métricas porcentuales.
+- **Mapa de Conexiones:** Visualización en red `/connections` que muestra las relaciones cruzadas entre personajes, canciones, teorías y más, con filtros avanzados en el cliente.
+- **Biblioteca de Símbolos:** Un índice iconográfico en `/symbols` y `/symbols/[slug]` dedicado a documentar la simbología repetitiva y abstracta de la narrativa (espejos, cámaras, flores), con placeholders procedimentales abstractos.
 - **Pendiente:** Implementar el flujo de autenticación real (login) para proteger el panel `/admin`, el cual actualmente simula su seguridad mediante comentarios guía `// TODO: SEGURIDAD` en las mutaciones de los servicios.

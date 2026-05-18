@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import AdminStatCard from '../../components/AdminStatCard.astro';
+import ArchiveStats from '../../components/ArchiveStats.astro';
 import EraForm from '../../components/admin/EraForm.astro';
 import TimelineForm from '../../components/admin/TimelineForm.astro';
 import TheoryForm from '../../components/admin/TheoryForm.astro';
@@ -23,12 +23,12 @@ import GlossaryForm from '../../components/admin/GlossaryForm.astro';
       </div>
     </header>
 
-    {/* Metrics Grid */}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-12 gap-6 mb-12">
-      <AdminStatCard title="Total de Eras" value="4" />
-      <AdminStatCard title="Eventos de Línea de Tiempo" value="128" />
-      <AdminStatCard title="Teorías Aprobadas" value="42" />
-      <AdminStatCard title="Tráfico (Últimos 30d)" value="14.2K" highlight={true} />
+    <div class="mb-12">
+      <ArchiveStats
+        title="Contenido disponible"
+        description="Conteo actual de los registros que alimentan el archivo y sus vistas públicas."
+        compact={true}
+      />
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">

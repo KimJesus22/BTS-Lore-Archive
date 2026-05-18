@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ArchiveStats from '../components/ArchiveStats.astro';
 import Button from '../components/Button.astro';
 import Card from '../components/Card.astro';
 import { getEras } from '../services/eras.service';
@@ -52,6 +53,12 @@ const structuredData = {
       </div>
     </div>
   </section>
+
+  <div class="relative z-10 border-t border-border/50 bg-surface/40">
+    <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop">
+      <ArchiveStats />
+    </div>
+  </div>
 
   {/* Eras Section */}
   <section class="py-stack-lg border-t border-border/50 relative z-10 bg-surface-dim/50 backdrop-blur-sm">

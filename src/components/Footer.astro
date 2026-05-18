@@ -11,7 +11,7 @@ import { navigation } from '../data/navigation';
           Un repositorio de alta fidelidad del lore del universo de BTS. Documentando las líneas de tiempo, los personajes y las narrativas interconectadas.
         </p>
       </div>
-      
+
       <div>
         <h4 class="label-caps mb-4">Exploración</h4>
         <ul class="space-y-2">
@@ -22,6 +22,26 @@ import { navigation } from '../data/navigation';
               </a>
             </li>
           ))}
+          <li>
+            <a href="/guides" class="text-on-surface-variant hover:text-primary-light transition-colors text-sm">
+              Rutas de lectura
+            </a>
+          </li>
+          <li>
+            <a href="/checklist" class="text-on-surface-variant hover:text-primary-light transition-colors text-sm">
+              Checklist
+            </a>
+          </li>
+          <li>
+            <a href="/about" class="text-on-surface-variant hover:text-primary-light transition-colors text-sm">
+              Acerca del proyecto
+            </a>
+          </li>
+          <li>
+            <a href="/roadmap" class="text-on-surface-variant hover:text-primary-light transition-colors text-sm">
+              Roadmap
+            </a>
+          </li>
         </ul>
       </div>
 
@@ -30,13 +50,13 @@ import { navigation } from '../data/navigation';
         <ul class="space-y-2">
           <li><a href="javascript:void(0)" class="text-on-surface-variant hover:text-primary-light transition-colors text-sm">Twitter</a></li>
           <li><a href="javascript:void(0)" class="text-on-surface-variant hover:text-primary-light transition-colors text-sm">Discord</a></li>
-          <li><a href="javascript:void(0)" class="text-on-surface-variant hover:text-primary-light transition-colors text-sm">Contribuir</a></li>
+          <li><a href="/about#como-contribuir" class="text-on-surface-variant hover:text-primary-light transition-colors text-sm">Contribuir</a></li>
         </ul>
       </div>
     </div>
-    
+
     <div class="mt-12 pt-8 border-t border-border/50 text-center text-xs text-on-surface-variant/70">
-      &copy; {new Date().getFullYear()} BTS Lore Archive. Proyecto creado por fans para propósitos de archivo.
+      &copy; {new Date().getFullYear()} BTS Lore Archive. Proyecto fan-made creado con fines educativos y de archivo.
     </div>
   </div>
 </footer>
