@@ -1,0 +1,717 @@
+---
+import { guides } from '../../../data/guides';
+import { DIFFICULTY_LABELS } from '../../../types/guides';
+import type { Guide } from '../../../types/guides';
+
+export async function getStaticPaths() {
+  return guides.map((guide) => ({
+    params: { slug: guide.slug },
+    props: { guide },
+  }));
+}
+
+interface Props {
+  guide: Guide;
+}
+
+const { guide } = Astro.props;
+const totalSlides = guide.steps.length + 1; // +1 for the title slide
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content={`Presentación: ${guide.title}`} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&family=Playfair+Display:wght@600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <title>{`Presentación: ${guide.title} | BTS Lore Archive`}</title>
+
+    <style>
+      /* ─── Reset & Base ─── */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --surface: #111415;
+        --surface-dim: #0c0f10;
+        --surface-container: #1d2021;
+        --primary: #6d28d9;
+        --primary-light: #d3bbff;
+        --primary-fixed: #ebddff;
+        --on-surface: #ffffff;
+        --on-surface-variant: #a1a1aa;
+        --border: rgba(255, 255, 255, 0.1);
+        --font-serif: 'Playfair Display', serif;
+        --font-sans: 'Manrope', 'Inter', sans-serif;
+        --font-mono: 'Space Grotesk', monospace;
+      }
+
+      html, body {
+        height: 100%;
+        overflow: hidden;
+        font-family: var(--font-sans);
+        background: var(--surface-dim);
+        color: var(--on-surface);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* ─── Presentation Container ─── */
+      .pres-container {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background:
+          radial-gradient(ellipse at 20% 0%, rgba(109, 40, 217, 0.18) 0%, transparent 50%),
+          radial-gradient(ellipse at 80% 100%, rgba(109, 40, 217, 0.08) 0%, transparent 50%),
+          linear-gradient(180deg, var(--surface) 0%, var(--surface-dim) 100%);
+      }
+
+      /* ─── Top Bar ─── */
+      .pres-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(17, 20, 21, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        z-index: 20;
+        flex-shrink: 0;
+      }
+
+      .pres-topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .pres-back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--on-surface-variant);
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        font-family: var(--font-sans);
+      }
+
+      .pres-back-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--on-surface);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .pres-title-bar {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--on-surface-variant);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .pres-counter {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--primary-light);
+        letter-spacing: 0.04em;
+        user-select: none;
+      }
+
+      .pres-counter span {
+        color: var(--on-surface-variant);
+        font-weight: 400;
+      }
+
+      /* ─── Slide Area ─── */
+      .pres-stage {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 64px;
+        opacity: 0;
+        transform: translateX(60px);
+        transition: opacity 0.45s ease, transform 0.45s ease;
+        pointer-events: none;
+      }
+
+      .slide.active {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+      }
+
+      .slide.exit-left {
+        opacity: 0;
+        transform: translateX(-60px);
+      }
+
+      /* ─── Title Slide ─── */
+      .slide-title {
+        text-align: center;
+        max-width: 800px;
+      }
+
+      .slide-title .guide-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 18px;
+        border-radius: 999px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 32px;
+      }
+
+      .badge-inicial { background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25); }
+      .badge-media { background: rgba(245, 158, 11, 0.12); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.25); }
+      .badge-avanzada { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); }
+
+      .slide-title h1 {
+        font-family: var(--font-serif);
+        font-size: clamp(36px, 6vw, 72px);
+        font-weight: 700;
+        line-height: 1.1;
+        color: var(--on-surface);
+        margin-bottom: 24px;
+        letter-spacing: -0.02em;
+      }
+
+      .slide-title .guide-desc {
+        font-size: clamp(16px, 2vw, 20px);
+        color: var(--on-surface-variant);
+        line-height: 1.6;
+        max-width: 640px;
+        margin: 0 auto 40px;
+      }
+
+      .slide-title .guide-meta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--on-surface-variant);
+      }
+
+      .slide-title .guide-meta .meta-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--on-surface-variant);
+        opacity: 0.4;
+      }
+
+      /* ─── Step Slide ─── */
+      .slide-step {
+        text-align: center;
+        max-width: 720px;
+      }
+
+      .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 2px solid rgba(109, 40, 217, 0.35);
+        background:
+          radial-gradient(circle, rgba(109, 40, 217, 0.15) 0%, transparent 70%),
+          var(--surface-container);
+        font-family: var(--font-serif);
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--primary-light);
+        margin-bottom: 40px;
+        box-shadow: 0 0 40px rgba(109, 40, 217, 0.12);
+      }
+
+      .slide-step h2 {
+        font-family: var(--font-serif);
+        font-size: clamp(28px, 5vw, 52px);
+        font-weight: 700;
+        line-height: 1.15;
+        color: var(--on-surface);
+        margin-bottom: 20px;
+        letter-spacing: -0.01em;
+      }
+
+      .slide-step .step-hint {
+        font-size: clamp(16px, 2vw, 22px);
+        color: var(--on-surface-variant);
+        line-height: 1.65;
+        max-width: 580px;
+        margin: 0 auto 36px;
+      }
+
+      .step-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        border-radius: 12px;
+        background: rgba(109, 40, 217, 0.15);
+        border: 1px solid rgba(109, 40, 217, 0.3);
+        color: var(--primary-light);
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        font-family: var(--font-sans);
+      }
+
+      .step-link:hover {
+        background: rgba(109, 40, 217, 0.25);
+        border-color: rgba(109, 40, 217, 0.5);
+        box-shadow: 0 0 24px rgba(109, 40, 217, 0.2);
+      }
+
+      .step-link svg {
+        width: 16px;
+        height: 16px;
+        transition: transform 0.2s ease;
+      }
+
+      .step-link:hover svg {
+        transform: translateX(3px);
+      }
+
+      /* ─── Bottom Controls ─── */
+      .pres-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 16px 24px;
+        border-top: 1px solid var(--border);
+        background: rgba(17, 20, 21, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        z-index: 20;
+        flex-shrink: 0;
+      }
+
+      .ctrl-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 44px;
+        padding: 0 20px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--on-surface);
+        font-size: 14px;
+        font-weight: 600;
+        font-family: var(--font-sans);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+      }
+
+      .ctrl-btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .ctrl-btn:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+
+      .ctrl-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .ctrl-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .ctrl-btn-primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+      }
+
+      .ctrl-btn-primary:hover:not(:disabled) {
+        background: #7c3aed;
+        border-color: #7c3aed;
+        box-shadow: 0 0 24px rgba(109, 40, 217, 0.35);
+      }
+
+      .ctrl-fullscreen {
+        padding: 0 14px;
+      }
+
+      /* ─── Progress Bar ─── */
+      .pres-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        transition: width 0.45s ease;
+        z-index: 30;
+        border-radius: 0 2px 0 0;
+      }
+
+      /* ─── Keyboard Hint ─── */
+      .kbd-hint {
+        position: absolute;
+        bottom: 90px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 16px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--on-surface-variant);
+        font-family: var(--font-mono);
+        opacity: 0;
+        transition: opacity 0.6s ease;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .kbd-hint.visible {
+        opacity: 1;
+      }
+
+      .kbd-hint kbd {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 26px;
+        height: 24px;
+        padding: 0 6px;
+        border-radius: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 11px;
+        font-weight: 700;
+        font-family: var(--font-mono);
+        color: var(--on-surface);
+      }
+
+      /* ─── Responsive ─── */
+      @media (max-width: 640px) {
+        .slide {
+          padding: 32px 24px;
+        }
+
+        .step-number {
+          width: 60px;
+          height: 60px;
+          font-size: 24px;
+          margin-bottom: 28px;
+        }
+
+        .pres-title-bar {
+          display: none;
+        }
+
+        .pres-topbar {
+          padding: 10px 16px;
+        }
+
+        .pres-controls {
+          padding: 12px 16px;
+          gap: 8px;
+        }
+
+        .ctrl-btn {
+          height: 40px;
+          padding: 0 14px;
+          font-size: 13px;
+        }
+
+        .ctrl-btn .btn-text {
+          display: none;
+        }
+
+        .kbd-hint {
+          display: none;
+        }
+      }
+
+      /* ─── Fullscreen tweaks ─── */
+      :fullscreen .pres-container,
+      :-webkit-full-screen .pres-container {
+        background:
+          radial-gradient(ellipse at 20% 0%, rgba(109, 40, 217, 0.18) 0%, transparent 50%),
+          radial-gradient(ellipse at 80% 100%, rgba(109, 40, 217, 0.08) 0%, transparent 50%),
+          linear-gradient(180deg, var(--surface) 0%, var(--surface-dim) 100%);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="pres-container" id="pres-container">
+      <!-- Top Bar -->
+      <div class="pres-topbar">
+        <div class="pres-topbar-left">
+          <a href={`/guides/${guide.slug}`} class="pres-back-btn" id="btn-back">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" width="14" height="14">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            </svg>
+            Volver a la guía
+          </a>
+          <span class="pres-title-bar">{guide.title}</span>
+        </div>
+        <div class="pres-counter" id="slide-counter">
+          1 <span>/ {totalSlides}</span>
+        </div>
+      </div>
+
+      <!-- Slide Stage -->
+      <div class="pres-stage">
+        <!-- Title Slide (index 0) -->
+        <div class="slide active" data-slide="0">
+          <div class="slide-title">
+            <div class={`guide-badge badge-${guide.difficulty}`}>
+              {DIFFICULTY_LABELS[guide.difficulty]} · {guide.estimatedTime}
+            </div>
+            <h1>{guide.title}</h1>
+            <p class="guide-desc">{guide.description}</p>
+            <div class="guide-meta">
+              <span>{guide.steps.length} pasos</span>
+              <div class="meta-dot"></div>
+              <span>{guide.estimatedTime}</span>
+              <div class="meta-dot"></div>
+              <span>BTS Lore Archive</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step Slides -->
+        {guide.steps.map((step, i) => (
+          <div class="slide" data-slide={String(i + 1)}>
+            <div class="slide-step">
+              <div class="step-number">{i + 1}</div>
+              <h2>{step.label}</h2>
+              {step.hint && <p class="step-hint">{step.hint}</p>}
+              <a href={step.href} class="step-link">
+                Ir al artículo
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        ))}
+
+        <!-- Keyboard Hint -->
+        <div class="kbd-hint visible" id="kbd-hint">
+          <kbd>←</kbd> anterior
+          <kbd>→</kbd> siguiente
+          <kbd>F</kbd> pantalla completa
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="pres-progress" id="pres-progress" style={`width: ${(1 / totalSlides) * 100}%`}></div>
+
+      <!-- Bottom Controls -->
+      <div class="pres-controls">
+        <button class="ctrl-btn" id="btn-prev" disabled aria-label="Diapositiva anterior">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+          <span class="btn-text">Anterior</span>
+        </button>
+
+        <button class="ctrl-btn ctrl-btn-primary" id="btn-next" aria-label="Siguiente diapositiva">
+          <span class="btn-text">Siguiente</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+
+        <button class="ctrl-btn ctrl-fullscreen" id="btn-fullscreen" aria-label="Pantalla completa" title="Pantalla completa (F)">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" id="icon-expand">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" id="icon-compress" style="display:none">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <script define:vars={{ totalSlides }}>
+      // ─── State ───
+      let current = 0;
+      const total = totalSlides;
+
+      // ─── DOM refs ───
+      const slides = document.querySelectorAll('.slide');
+      const counter = document.getElementById('slide-counter');
+      const progress = document.getElementById('pres-progress');
+      const btnPrev = document.getElementById('btn-prev');
+      const btnNext = document.getElementById('btn-next');
+      const btnFs = document.getElementById('btn-fullscreen');
+      const iconExpand = document.getElementById('icon-expand');
+      const iconCompress = document.getElementById('icon-compress');
+      const kbdHint = document.getElementById('kbd-hint');
+
+      // ─── Hide keyboard hint after first interaction ───
+      let hintDismissed = false;
+      function dismissHint() {
+        if (!hintDismissed && kbdHint) {
+          hintDismissed = true;
+          kbdHint.classList.remove('visible');
+        }
+      }
+
+      // ─── Go to slide ───
+      function goTo(index) {
+        if (index < 0 || index >= total) return;
+
+        const direction = index > current ? 1 : -1;
+
+        slides.forEach((slide, i) => {
+          slide.classList.remove('active', 'exit-left');
+          if (i === index) {
+            slide.classList.add('active');
+          } else if (i === current && direction === 1) {
+            slide.classList.add('exit-left');
+          }
+        });
+
+        current = index;
+
+        // Update counter
+        if (counter) {
+          counter.innerHTML = `${current + 1} <span>/ ${total}</span>`;
+        }
+
+        // Update progress
+        if (progress) {
+          progress.style.width = `${((current + 1) / total) * 100}%`;
+        }
+
+        // Update button states
+        if (btnPrev) btnPrev.disabled = current === 0;
+        if (btnNext) btnNext.disabled = current === total - 1;
+
+        dismissHint();
+      }
+
+      // ─── Navigation handlers ───
+      if (btnPrev) btnPrev.addEventListener('click', () => goTo(current - 1));
+      if (btnNext) btnNext.addEventListener('click', () => goTo(current + 1));
+
+      // ─── Keyboard navigation ───
+      document.addEventListener('keydown', (e) => {
+        switch (e.key) {
+          case 'ArrowRight':
+          case 'ArrowDown':
+            e.preventDefault();
+            goTo(current + 1);
+            break;
+          case 'ArrowLeft':
+          case 'ArrowUp':
+            e.preventDefault();
+            goTo(current - 1);
+            break;
+          case 'Home':
+            e.preventDefault();
+            goTo(0);
+            break;
+          case 'End':
+            e.preventDefault();
+            goTo(total - 1);
+            break;
+          case 'f':
+          case 'F':
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) break;
+            e.preventDefault();
+            toggleFullscreen();
+            break;
+          case 'Escape':
+            // Browser handles exit fullscreen natively
+            break;
+        }
+      });
+
+      // ─── Fullscreen ───
+      function toggleFullscreen() {
+        const container = document.getElementById('pres-container');
+        if (!container) return;
+
+        if (!document.fullscreenElement) {
+          container.requestFullscreen().catch(() => {
+            // Fullscreen not supported or denied — silently ignore
+          });
+        } else {
+          document.exitFullscreen();
+        }
+      }
+
+      if (btnFs) btnFs.addEventListener('click', toggleFullscreen);
+
+      // Update fullscreen icon on change
+      document.addEventListener('fullscreenchange', () => {
+        const isFs = !!document.fullscreenElement;
+        if (iconExpand) iconExpand.style.display = isFs ? 'none' : 'block';
+        if (iconCompress) iconCompress.style.display = isFs ? 'block' : 'none';
+      });
+
+      // ─── Hide fullscreen button if not supported ───
+      if (btnFs && !document.documentElement.requestFullscreen) {
+        btnFs.style.display = 'none';
+      }
+
+      // ─── Auto-dismiss hint after 6 seconds ───
+      setTimeout(() => {
+        dismissHint();
+      }, 6000);
+    </script>
+  </body>
+</html>

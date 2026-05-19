@@ -7,6 +7,7 @@ export const navigation: NavigationItem[] = [
   { name: 'Miembros', href: '/members' },
   { name: 'Teorías', href: '/theories' },
   { name: 'Símbolos', href: '/symbols' },
+  { name: 'Álbumes', href: '/albums' },
   { name: 'Glosario', href: '/glossary' },
   { name: 'Conexiones', href: '/connections' },
   { name: 'Comparar', href: '/compare' },

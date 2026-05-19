@@ -5,6 +5,7 @@ import EraForm from '../../components/admin/EraForm.astro';
 import TimelineForm from '../../components/admin/TimelineForm.astro';
 import TheoryForm from '../../components/admin/TheoryForm.astro';
 import GlossaryForm from '../../components/admin/GlossaryForm.astro';
+import TheoryImport from '../../components/admin/TheoryImport.astro';
 ---
 
 <BaseLayout title="Admin Dashboard" description="Panel interno para gestionar contenido del BTS Lore Archive. Pendiente de autenticación real antes de producción.">
@@ -44,6 +45,14 @@ import GlossaryForm from '../../components/admin/GlossaryForm.astro';
           <TheoryForm />
           <GlossaryForm />
         </div>
+      </section>
+
+      <section class="xl:col-span-8">
+        <div class="mb-8 border-b border-border/50 pb-4">
+          <h2 class="text-2xl font-serif text-on-surface">Importar Contenido</h2>
+          <p class="text-on-surface-variant text-sm">Crea teorías a partir de texto Markdown ya existente.</p>
+        </div>
+        <TheoryImport />
       </section>
 
       <aside class="xl:col-span-4 space-y-8">

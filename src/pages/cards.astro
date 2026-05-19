@@ -1,0 +1,345 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import EmptyState from '../components/EmptyState.astro';
+import { loreCards } from '../data/loreCards';
+
+// Generar categorías y dificultades únicas de forma dinámica para los filtros
+const categories = ['Todas', ...new Set(loreCards.map(card => card.category))];
+const difficulties = ['Todas', 'Fácil', 'Media', 'Avanzada'];
+
+// Normalizar strings para filtrado seguro (sin acentos, minúsculas)
+const normalize = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+---
+
+<BaseLayout title="Lore Cards" description="Explora y comparte fichas sintetizadas y datos clave del universo narrativo de BTS.">
+  <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    
+    <PageHeader
+      tag="Base de Datos"
+      title="Lore Cards"
+      description="Tarjetas compactas, teóricas y narrativas del universo BTS. Filtrables, interactivas y listas para compartir."
+      align="center"
+    />
+
+    <!-- SECCIÓN DE FILTROS -->
+    <section class="glass-card mb-10 p-6 md:p-8 space-y-6">
+      <!-- Filtro de Categoría -->
+      <div>
+        <span class="label-caps mb-3 block text-primary-light">Filtrar por Categoría</span>
+        <div class="flex flex-wrap gap-2" aria-label="Filtros de categoría">
+          {categories.map((category) => (
+            <button
+              type="button"
+              data-category-filter={normalize(category)}
+              aria-pressed={category === 'Todas' ? 'true' : 'false'}
+              class={`lore-category-filter rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-300 ${
+                category === 'Todas'
+                  ? 'border-primary/50 bg-primary/20 text-primary-light shadow-[0_0_12px_rgba(109,40,217,0.2)]'
+                  : 'border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-primary/35 hover:text-primary-light'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Filtro de Dificultad -->
+      <div class="border-t border-white/5 pt-5">
+        <span class="label-caps mb-3 block text-secondary-dim">Filtrar por Dificultad</span>
+        <div class="flex flex-wrap gap-2" aria-label="Filtros de dificultad">
+          {difficulties.map((diff) => (
+            <button
+              type="button"
+              data-difficulty-filter={normalize(diff)}
+              aria-pressed={diff === 'Todas' ? 'true' : 'false'}
+              class={`lore-difficulty-filter rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-300 ${
+                diff === 'Todas'
+                  ? 'border-secondary/50 bg-secondary/10 text-secondary-dim shadow-[0_0_12px_rgba(233,195,73,0.1)]'
+                  : 'border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-secondary/35 hover:text-secondary-dim'
+              }`}
+            >
+              {diff}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Contador de tarjetas visibles -->
+      <div class="border-t border-white/5 pt-4 flex items-center justify-between">
+        <p id="cards-count" class="text-sm text-on-surface-variant font-mono">
+          {loreCards.length} tarjetas disponibles
+        </p>
+        <button
+          type="button"
+          id="reset-filters-btn"
+          class="text-xs font-mono uppercase tracking-wider text-primary-light hover:text-white transition-colors underline decoration-dotted underline-offset-4"
+        >
+          Limpiar filtros
+        </button>
+      </div>
+    </section>
+
+    <!-- ESTADO VACÍO (Si no coinciden los filtros) -->
+    <div id="cards-empty-state" class="hidden my-12">
+      <EmptyState
+        title="No se encontraron tarjetas"
+        description="Intenta cambiar la combinación de filtros seleccionados."
+      />
+    </div>
+
+    <!-- GRID DE TARJETAS -->
+    <div id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {loreCards.map((card) => {
+        // Asignar color de dificultad premium
+        const diffColor = 
+          card.difficulty === 'Fácil' 
+            ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' 
+            : card.difficulty === 'Media' 
+            ? 'text-secondary bg-secondary/10 border-secondary/20' 
+            : 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+
+        return (
+          <article
+            id={card.id}
+            class="lore-card-item glass-card flex flex-col p-6 md:p-8 scroll-mt-28 transition-all duration-300"
+            data-category={normalize(card.category)}
+            data-difficulty={normalize(card.difficulty)}
+          >
+            <!-- Cabecera de la tarjeta: Categoría y Dificultad -->
+            <div class="flex items-center justify-between mb-4">
+              <span class="label-caps text-primary-light bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-md text-[10px] tracking-wider">
+                {card.category}
+              </span>
+              <span class={`text-[11px] font-mono font-bold uppercase px-2 py-0.5 rounded border ${diffColor}`}>
+                {card.difficulty}
+              </span>
+            </div>
+
+            <!-- Título -->
+            <h3 class="text-2xl font-serif font-bold text-on-surface mb-3 line-clamp-2">
+              {card.title}
+            </h3>
+
+            <!-- Texto descriptivo principal -->
+            <p class="text-on-surface-variant text-body-md font-sans leading-relaxed flex-grow">
+              {card.shortText}
+            </p>
+
+            <!-- Enlace relacionado (si existe) -->
+            {card.relatedLink && (
+              <div class="mt-4">
+                <a
+                  href={card.relatedLink}
+                  class="inline-flex items-center text-xs font-mono font-bold uppercase text-secondary hover:text-white transition-colors gap-1 group"
+                >
+                  Explorar Relacionado 
+                  <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                </a>
+              </div>
+            )}
+
+            <!-- Tags / Etiquetas -->
+            <div class="flex flex-wrap gap-1.5 mt-5 pt-4 border-t border-white/5">
+              {card.tags.map((tag) => (
+                <span class="text-[10px] font-mono uppercase font-semibold text-on-surface-variant bg-white/[0.04] border border-white/5 px-2 py-0.5 rounded-full">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+
+            <!-- Acciones: Copiar texto y enlace -->
+            <div class="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-white/5">
+              <button
+                type="button"
+                class="copy-text-btn flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] py-2.5 text-xs font-semibold text-on-surface transition-all duration-300 hover:bg-white/[0.06] hover:border-primary/45 active:scale-95"
+                data-text={card.shortText}
+              >
+                <!-- SVG de Copiar -->
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
+                </svg>
+                <span>Copiar texto</span>
+              </button>
+
+              <button
+                type="button"
+                class="copy-link-btn flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.02] py-2.5 text-xs font-semibold text-on-surface transition-all duration-300 hover:bg-white/[0.06] hover:border-secondary/45 active:scale-95"
+                data-id={card.id}
+              >
+                <!-- SVG de Compartir / Enlace -->
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                </svg>
+                <span>Copiar enlace</span>
+              </button>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+
+  </div>
+</BaseLayout>
+
+<script>
+  // SELECTORES
+  const categoryButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.lore-category-filter'));
+  const difficultyButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.lore-difficulty-filter'));
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.lore-card-item'));
+  const countLabel = document.getElementById('cards-count');
+  const emptyState = document.getElementById('cards-empty-state');
+  const resetFiltersBtn = document.getElementById('reset-filters-btn');
+  const copyTextBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('.copy-text-btn'));
+  const copyLinkBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('.copy-link-btn'));
+
+  // ESTADO DE FILTRADO
+  let activeCategory = 'todas';
+  let activeDifficulty = 'todas';
+
+  // ACTUALIZACIÓN DE ESTILOS DE FILTROS SELECCIONADOS
+  const updateFilterUI = () => {
+    // Categorías
+    categoryButtons.forEach((btn) => {
+      const isSelected = btn.dataset.categoryFilter === activeCategory;
+      btn.setAttribute('aria-pressed', String(isSelected));
+      if (isSelected) {
+        btn.className = 'lore-category-filter rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-300 border-primary/50 bg-primary/20 text-primary-light shadow-[0_0_12px_rgba(109,40,217,0.2)]';
+      } else {
+        btn.className = 'lore-category-filter rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-300 border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-primary/35 hover:text-primary-light';
+      }
+    });
+
+    // Dificultades
+    difficultyButtons.forEach((btn) => {
+      const isSelected = btn.dataset.difficultyFilter === activeDifficulty;
+      btn.setAttribute('aria-pressed', String(isSelected));
+      if (isSelected) {
+        btn.className = 'lore-difficulty-filter rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-300 border-secondary/50 bg-secondary/10 text-secondary-dim shadow-[0_0_12px_rgba(233,195,73,0.1)]';
+      } else {
+        btn.className = 'lore-difficulty-filter rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-300 border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-secondary/35 hover:text-secondary-dim';
+      }
+    });
+  };
+
+  // APLICAR FILTRADO EN GRID
+  const applyFilters = () => {
+    let visibleCount = 0;
+
+    cards.forEach((card) => {
+      const matchesCategory = activeCategory === 'todas' || card.dataset.category === activeCategory;
+      const matchesDifficulty = activeDifficulty === 'todas' || card.dataset.difficulty === activeDifficulty;
+      const shouldShow = matchesCategory && matchesDifficulty;
+
+      card.classList.toggle('hidden', !shouldShow);
+      if (shouldShow) visibleCount++;
+    });
+
+    // Actualizar contador
+    if (countLabel) {
+      countLabel.textContent = `${visibleCount} tarjeta${visibleCount === 1 ? '' : 's'} disponible${visibleCount === 1 ? '' : 's'}`;
+    }
+
+    // Mostrar/ocultar estado vacío
+    if (emptyState) {
+      emptyState.classList.toggle('hidden', visibleCount > 0);
+    }
+
+    updateFilterUI();
+  };
+
+  // CONTROLADORES DE EVENTOS DE FILTRADO
+  categoryButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeCategory = btn.dataset.categoryFilter ?? 'todas';
+      applyFilters();
+    });
+  });
+
+  difficultyButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeDifficulty = btn.dataset.difficultyFilter ?? 'todas';
+      applyFilters();
+    });
+  });
+
+  resetFiltersBtn?.addEventListener('click', () => {
+    activeCategory = 'todas';
+    activeDifficulty = 'todas';
+    applyFilters();
+  });
+
+  // FUNCIONALIDAD DE COPIAR TEXTO CON EFECTO PREMIUM
+  copyTextBtns.forEach((btn) => {
+    const originalContent = btn.innerHTML;
+    btn.addEventListener('click', async () => {
+      const textToCopy = btn.dataset.text ?? '';
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        
+        // Cambiar temporalmente a estado de éxito con efecto brillante
+        btn.innerHTML = `
+          <svg class="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span class="text-emerald-400 font-bold">¡Copiado!</span>
+        `;
+        btn.classList.add('border-emerald-500/40', 'bg-emerald-500/5', 'shadow-[0_0_10px_rgba(16,185,129,0.15)]');
+
+        setTimeout(() => {
+          btn.innerHTML = originalContent;
+          btn.classList.remove('border-emerald-500/40', 'bg-emerald-500/5', 'shadow-[0_0_10px_rgba(16,185,129,0.15)]');
+        }, 2000);
+      } catch (err) {
+        console.error('Error al copiar el texto: ', err);
+      }
+    });
+  });
+
+  // FUNCIONALIDAD DE COPIAR ENLACE CON EFECTO PREMIUM
+  copyLinkBtns.forEach((btn) => {
+    const originalContent = btn.innerHTML;
+    btn.addEventListener('click', async () => {
+      const cardId = btn.dataset.id ?? '';
+      const shareUrl = `${window.location.origin}${window.location.pathname}#${cardId}`;
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+
+        // Cambiar temporalmente a estado de éxito con efecto brillante
+        btn.innerHTML = `
+          <svg class="h-3.5 w-3.5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span class="text-secondary font-bold font-mono">¡Enlace!</span>
+        `;
+        btn.classList.add('border-secondary/40', 'bg-secondary/5', 'shadow-[0_0_10px_rgba(233,195,73,0.15)]');
+
+        setTimeout(() => {
+          btn.innerHTML = originalContent;
+          btn.classList.remove('border-secondary/40', 'bg-secondary/5', 'shadow-[0_0_10px_rgba(233,195,73,0.15)]');
+        }, 2000);
+      } catch (err) {
+        console.error('Error al copiar el enlace: ', err);
+      }
+    });
+  });
+
+  // SI SE NAVEGA CON UN HASH, RESALTAR LA TARJETA CORRESPONDIENTE
+  window.addEventListener('load', () => {
+    if (window.location.hash) {
+      const targetCard = document.querySelector(window.location.hash);
+      if (targetCard) {
+        // Resaltar brevemente la tarjeta con un borde brillante
+        targetCard.classList.add('border-primary/80', 'ring-2', 'ring-primary/20');
+        setTimeout(() => {
+          targetCard.classList.remove('border-primary/80', 'ring-2', 'ring-primary/20');
+        }, 3000);
+      }
+    }
+  });
+</script>

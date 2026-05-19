@@ -13,22 +13,96 @@ Dentro del proyecto, encontrarás la siguiente estructura de directorios y archi
 ├── public/                 # Archivos estáticos como imágenes y favicons
 ├── src/
 │   ├── components/         # Componentes UI (Card, Button, EmptyState, FavoriteButton, SearchInput/Results, admin/)
-│   ├── data/               # Datos de prueba (mock) estructurados por dominio (eras, members, etc.)
+│   ├── data/               # Datos de prueba (mock) estructurados por dominio (eras, members, guides, quiz, etc.)
+│   │   ├── albums.ts       # Catálogo de álbumes
+│   │   ├── connections.ts  # Relaciones cruzadas entre entidades del lore
+│   │   ├── eras.ts         # Eras narrativas (HYYH, WINGS, Love Yourself, Map of the Soul)
+│   │   ├── glossary.ts     # Glosario de términos del universo BTS
+│   │   ├── guides.ts       # Rutas de lectura curadas con pasos enlazados
+│   │   ├── loreCards.ts    # Tarjetas de lore para la vista de colección
+│   │   ├── members.ts      # Miembros y sus roles narrativos
+│   │   ├── navigation.ts   # Items de navegación principal
+│   │   ├── quiz.ts         # 15 preguntas de opción múltiple sobre el lore
+│   │   ├── roadmap.ts      # Fases del roadmap del proyecto
+│   │   ├── symbols.ts      # Simbología recurrente (Smeraldo, espejo, cámara, etc.)
+│   │   ├── theories.ts     # Teorías populares de la comunidad
+│   │   └── timeline.ts     # Eventos cronológicos del universo narrativo
 │   ├── layouts/            # Plantillas maestras (BaseLayout) con soporte SEO para meta descripciones dinámicas
 │   ├── lib/                # Configuración de clientes externos (ej. insforge.ts)
-│   ├── pages/              # Rutas de navegación estáticas y dinámicas (ej. theories/[slug].astro, 404.astro)
+│   ├── pages/              # Rutas de navegación estáticas y dinámicas
+│   │   ├── admin/          # Panel de escritura directa con formularios CRUD
+│   │   ├── albums/         # Catálogo de álbumes y detalle por slug
+│   │   ├── eras/           # Índice de eras y detalle dinámico por ID
+│   │   ├── guides/         # Guías de lectura, detalle y modo presentación
+│   │   │   └── [slug]/
+│   │   │       ├── index.astro         # Detalle de la guía con timeline visual
+│   │   │       └── presentation.astro  # Modo presentación (slides HTML)
+│   │   ├── songs/          # Detalle de canciones por slug
+│   │   ├── symbols/        # Biblioteca de símbolos y detalle por slug
+│   │   ├── theories/       # Índice y detalle de teorías por slug
+│   │   ├── quiz.astro      # Quiz de opción múltiple con puntaje local
+│   │   ├── study.astro     # Modo estudio con flashcards interactivas
+│   │   └── ...             # index, search, timeline, glossary, compare, etc.
 │   ├── services/           # Lógica de negocio, capa de servicios e indexador de búsqueda universal
 │   ├── styles/             # Archivos CSS globales (global.css con utilidades de Tailwind)
-│   ├── types/              # Definiciones y contratos de TypeScript (content.ts)
+│   ├── types/              # Definiciones y contratos de TypeScript (content.ts, guides.ts, symbols.ts)
 │   └── utils/              # Funciones auxiliares de utilidad (cálculo de tiempo de lectura, etc.)
 ├── .env                    # Variables de entorno (PUBLIC_INSFORGE_URL, PUBLIC_INSFORGE_ANON_KEY)
 ├── AGENTS.md               # Reglas estrictas de desarrollo y configuración del proyecto
+├── DESIGN.md               # Sistema de diseño "Cosmic Archive" (paleta, tipografía, componentes)
 ├── astro.config.mjs        # Configuración principal de Astro
 ├── package.json            # Dependencias y scripts del proyecto
-└── tailwind.config.mjs     # Sistema de diseño "Cosmic Archive" y tokens de estilo
+└── tailwind.config.mjs     # Tokens de estilo mapeados desde DESIGN.md
 ```
 
 Astro busca archivos `.astro` o `.md` en el directorio `src/pages/`. Cada página se expone automáticamente como una ruta según su nombre de archivo.
+
+## 🗺️ Mapa de Rutas
+
+| Ruta | Descripción |
+| :--- | :---------- |
+| `/` | Página principal con estadísticas y accesos directos |
+| `/timeline` | Línea de tiempo cronológica con filtros duales (era + tipo de fuente) |
+| `/eras` | Índice de eras narrativas |
+| `/eras/[id]` | Detalle de una era específica |
+| `/members` | Miembros y sus roles narrativos |
+| `/glossary` | Glosario de términos con búsqueda y filtros por categoría |
+| `/theories` | Índice de teorías de la comunidad |
+| `/theories/[slug]` | Detalle de una teoría con estimación de lectura |
+| `/symbols` | Biblioteca iconográfica de símbolos recurrentes |
+| `/symbols/[slug]` | Detalle de un símbolo específico |
+| `/albums` | Catálogo de álbumes |
+| `/songs/[slug]` | Detalle de una canción |
+| `/guides` | Índice de rutas de lectura curadas |
+| `/guides/[slug]` | Detalle de una guía con timeline visual de pasos |
+| `/guides/[slug]/presentation` | **Modo presentación** — slides HTML para exponer en clase |
+| `/study` | **Modo estudio** — flashcards interactivas desde glosario, símbolos y eras |
+| `/quiz` | **Quiz** — opción múltiple con puntaje y mejor marca local |
+| `/compare` | Comparador estructural entre eras |
+| `/connections` | Mapa de conexiones cruzadas entre entidades |
+| `/cards` | Colección de tarjetas de lore |
+| `/search` | Motor de búsqueda universal |
+| `/favorites` | Marcadores guardados localmente |
+| `/notes` | Notas de investigación personales |
+| `/checklist` | Checklist de exploración con progreso local |
+| `/settings` | Configuración global (spoilers, tipografía, densidad, animaciones) |
+| `/roadmap` | Tablero Kanban con el estado del proyecto |
+| `/about` | Información sobre el archivo |
+| `/admin` | Panel de escritura directa (formularios CRUD hacia InsForge) |
+| `/404` | Página de error personalizada |
+
+## 💾 Almacenamiento Local (localStorage)
+
+El sitio utiliza `localStorage` para persistir preferencias y progreso del usuario sin necesidad de autenticación:
+
+| Clave | Descripción |
+| :---- | :---------- |
+| `bts-lore-settings` | Configuración global: modo spoiler, tamaño de texto, densidad, animaciones |
+| `bts-lore-favorites` | Marcadores de contenido favorito |
+| `bts-lore-notes` | Notas de investigación personales |
+| `bts-lore-checklist` | Progreso del checklist de exploración |
+| `bts-lore-study-progress` | Progreso de flashcards: tarjetas conocidas y pendientes de repaso |
+| `bts-lore-quiz-best-score` | Mejor puntaje obtenido en el quiz |
 
 ## 🧞 Comandos Útiles
 
@@ -40,19 +114,29 @@ Todos los comandos se ejecutan desde la raíz del proyecto usando `pnpm 11`:
 | `pnpm dev`                  | Inicia el servidor de desarrollo local en `http://localhost:4321`.  |
 | `pnpm build`                | Genera la versión optimizada para producción en `./dist/`.          |
 | `pnpm preview`              | Previsualiza tu compilación de producción localmente.               |
-| `pnpm astro ...`            | Ejecuta comandos del CLI como `astro check` para validar tipados.   |
+| `pnpm astro check`          | Valida tipados estrictos en archivos `.astro` y `.ts`.              |
 
 ## 🛠️ Tecnologías Utilizadas
 
 - **Framework:** Astro (v6.x)
 - **Lenguaje:** TypeScript
 - **Estilos:** Tailwind CSS (v3.4, intencionalmente bloqueado para compatibilidad con InsForge)
-- **Base de Datos / Backend:** InsForge (Base de datos remota con capa de fallback)
+- **Base de Datos / Backend:** InsForge (Base de datos remota con capa de fallback a datos mock)
 - **SDK:** `@insforge/sdk`
+- **Tipografías:** Playfair Display (headlines), Manrope (body), Space Grotesk (labels)
 
 ## 🔮 Fase de Desarrollo Actual
 
-El proyecto se encuentra en la **Fase 5 (Comparación de Eras, Notas Privadas y Estados Visuales UX)**.
+El proyecto se encuentra en la **Fase 6 (Herramientas de Estudio e Interactividad)**.
+
+### Fase 6 — Herramientas de Estudio e Interactividad
+
+- **Modo Presentación para Guías:** Cada guía cuenta con una ruta `/guides/[slug]/presentation` que genera slides HTML a partir de los pasos. Incluye diapositiva de título, controles (anterior/siguiente/pantalla completa), contador, barra de progreso, navegación por teclado (`←` `→` `F`) y diseño oscuro standalone sin header/footer.
+- **Modo Estudio (Flashcards):** La página `/study` genera tarjetas de estudio automáticamente desde tres fuentes de datos (glosario, símbolos y eras). Cada flashcard muestra una pregunta, se revela con un toque, y el usuario marca «Lo sabía» o «Repasar después». El progreso se persiste en `localStorage` bajo `bts-lore-study-progress`. Incluye filtros por categoría, barajeo aleatorio y sesiones de repaso de pendientes.
+- **Quiz del Lore:** Un quiz de opción múltiple en `/quiz` con 15 preguntas curadas (`src/data/quiz.ts`). Muestra feedback inmediato con explicación, calcula puntaje con anillo visual animado, guarda el mejor puntaje en `localStorage` bajo `bts-lore-quiz-best-score`, y soporta atajos de teclado (`1-4` para responder, `Enter`/`→` para avanzar).
+
+### Fases anteriores (1–5)
+
 - **Comparador Estructural de Eras:** Creación de la página `/compare` que realiza cruces dinámicos entre tablas de Eras y Timeline Events en InsForge, complementados con metadatos específicos (canciones clave, conceptos de lore y símbolos visuales) en una grilla comparativa interactiva.
 - **Notas de Investigación Personales:** Integración del componente `PersonalNotes.astro` y el panel `/notes`. Habilita a los usuarios a escribir anotaciones privadas sobre Eras, Teorías o Glosarios que se almacenan en `localStorage` con soporte completo de visualización, edición y eliminación (CRUD) y enlaces profundos de retorno.
 - **Visual State Machine (UX Premium):** Estandarización de las respuestas de red mediante componentes dedicados:
@@ -76,4 +160,9 @@ El proyecto se encuentra en la **Fase 5 (Comparación de Eras, Notas Privadas y 
 - **Configuración Global Local (UX Avanzada):** Página `/settings` y un gestor de estado inyectado globalmente en el diseño base. Permite a los usuarios guardar en su navegador (mediante `localStorage` bajo `bts-lore-settings`):
   - *Modo Spoiler Safe:* Protege a los nuevos lectores ocultando eventos drásticos y difuminando detalles sensibles a través del componente global `SpoilerBlock.astro`.
   - *Accesibilidad y Diseño Personalizado:* Ajustes en tiempo real del tamaño base de la tipografía (pequeño/normal/grande), la densidad visual de los componentes (cómoda/compacta) y las animaciones de UI (activadas/reducidas) interactuando con el sistema de variables y unidades nativas de Tailwind CSS.
-- **Pendiente:** Implementar el flujo de autenticación real (login) para proteger el panel `/admin`, el cual actualmente simula su seguridad mediante comentarios guía `// TODO: SEGURIDAD` en las mutaciones de los servicios. O bien, sincronizar el perfil de configuración en la nube mediante InsForge.
+
+### Pendientes
+
+- Implementar el flujo de autenticación real (login) para proteger el panel `/admin`, el cual actualmente simula su seguridad mediante comentarios guía `// TODO: SEGURIDAD` en las mutaciones de los servicios.
+- Sincronizar el perfil de configuración y progreso de estudio en la nube mediante InsForge.
+- Ampliar el banco de preguntas del quiz con generación dinámica desde los datos existentes.

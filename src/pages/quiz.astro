@@ -1,0 +1,472 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { quizQuestions } from '../data/quiz';
+import type { QuizQuestion } from '../data/quiz';
+
+const questionsJSON = JSON.stringify(quizQuestions);
+const totalQuestions = quizQuestions.length;
+---
+
+<BaseLayout title="Quiz" description="Pon a prueba tu conocimiento del universo narrativo de BTS con un quiz de opción múltiple.">
+  <div class="max-w-[720px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader
+      tag="Herramientas"
+      title="Quiz del Lore"
+      description="Pon a prueba tu conocimiento del universo narrativo de BTS. Responde preguntas de opción múltiple y descubre cuánto sabes."
+      align="center"
+    />
+
+    <!-- Best score -->
+    <div id="quiz-best" class="hidden mb-8 text-center">
+      <span class="inline-flex items-center gap-2 rounded-full border border-secondary-dim/30 bg-secondary-dim/10 px-4 py-2 text-sm font-semibold text-secondary-dim">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-4.5A3.375 3.375 0 0012.75 10.5h-1.5A3.375 3.375 0 007.875 14.25v4.5m8.625 0h-9" /></svg>
+        Mejor puntaje: <span id="quiz-best-val">0</span>/<span id="quiz-best-total">0</span>
+      </span>
+    </div>
+
+    <!-- Progress -->
+    <div class="mb-6 flex items-center justify-between text-sm text-on-surface-variant">
+      <span id="quiz-progress-label">Pregunta 1 de {totalQuestions}</span>
+      <span id="quiz-score-label" class="font-mono text-xs tracking-wider uppercase"></span>
+    </div>
+    <div class="mb-10 h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+      <div id="quiz-progress-bar" class="h-full rounded-full bg-gradient-to-r from-primary to-primary-light transition-all duration-500" style="width: 0%"></div>
+    </div>
+
+    <!-- Quiz Card Area -->
+    <div id="quiz-card-area">
+      <!-- Question card -->
+      <div id="quiz-card" class="quiz-card glass-card overflow-hidden p-8 md:p-10">
+        <!-- Badges -->
+        <div class="mb-6 flex items-center gap-2">
+          <span id="q-difficulty" class="label-caps rounded-full border px-3 py-1"></span>
+          <div id="q-tags" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Question -->
+        <h2 id="q-text" class="text-xl md:text-2xl font-serif font-bold text-on-surface leading-snug mb-8"></h2>
+
+        <!-- Options -->
+        <div id="q-options" class="space-y-3"></div>
+
+        <!-- Feedback (hidden initially) -->
+        <div id="q-feedback" class="hidden mt-8 rounded-xl border p-5">
+          <div class="flex items-start gap-3">
+            <div id="q-feedback-icon" class="flex-shrink-0 mt-0.5"></div>
+            <div>
+              <p id="q-feedback-title" class="font-semibold text-sm mb-1"></p>
+              <p id="q-feedback-text" class="text-sm text-on-surface-variant leading-relaxed"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Next button -->
+        <div id="q-next-wrap" class="hidden mt-8 flex justify-end">
+          <button id="btn-next" type="button" class="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-primary-light hover:shadow-[0_0_24px_rgba(109,40,217,0.4)]">
+            Siguiente
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results (hidden initially) -->
+    <div id="quiz-results" class="hidden">
+      <div class="text-center p-8 md:p-12 border border-white/10 rounded-2xl bg-gradient-to-b from-white/[0.03] to-transparent">
+        <!-- Score circle -->
+        <div class="relative inline-flex items-center justify-center w-32 h-32 mb-8">
+          <svg class="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"></circle>
+            <circle id="score-ring" cx="60" cy="60" r="54" fill="none" stroke-width="8" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="339.292" style="transition: stroke-dashoffset 1.2s ease"></circle>
+          </svg>
+          <span id="score-display" class="text-3xl font-serif font-bold text-on-surface"></span>
+        </div>
+
+        <h3 id="result-title" class="text-2xl font-serif font-bold text-on-surface mb-3"></h3>
+        <p id="result-desc" class="text-on-surface-variant mb-4 max-w-md mx-auto"></p>
+        <p id="result-best" class="hidden text-sm font-semibold text-secondary-dim mb-8"></p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button id="btn-restart" type="button" class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-primary-light hover:shadow-[0_0_24px_rgba(109,40,217,0.4)]">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.992 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" /></svg>
+            Intentar de nuevo
+          </button>
+          <a href="/study" class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-6 py-3 text-sm font-semibold text-on-surface-variant transition-all hover:bg-white/[0.07]">
+            Ir a Modo Estudio
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .quiz-card {
+    transition: transform 0.3s ease;
+  }
+  .quiz-card.slide-out {
+    animation: q-slide-out 0.3s ease forwards;
+  }
+  .quiz-card.slide-in {
+    animation: q-slide-in 0.3s ease;
+  }
+  @keyframes q-slide-out {
+    to { opacity: 0; transform: translateX(-30px); }
+  }
+  @keyframes q-slide-in {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .quiz-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: #e1e3e4;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Manrope', sans-serif;
+  }
+  .quiz-option:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  .quiz-option:disabled {
+    cursor: default;
+  }
+  .quiz-option .opt-marker {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', monospace;
+    transition: all 0.2s ease;
+  }
+  .quiz-option.correct {
+    border-color: rgba(16, 185, 129, 0.5);
+    background: rgba(16, 185, 129, 0.1);
+  }
+  .quiz-option.correct .opt-marker {
+    border-color: rgba(16, 185, 129, 0.6);
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+  }
+  .quiz-option.wrong {
+    border-color: rgba(239, 68, 68, 0.5);
+    background: rgba(239, 68, 68, 0.08);
+  }
+  .quiz-option.wrong .opt-marker {
+    border-color: rgba(239, 68, 68, 0.6);
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+  }
+  .quiz-option.dimmed {
+    opacity: 0.4;
+  }
+</style>
+
+<script define:vars={{ questionsJSON }}>
+  // ─── State ───
+  var BEST_KEY = 'bts-lore-quiz-best-score';
+  var allQuestions = JSON.parse(questionsJSON);
+  var questions = [];
+  var current = 0;
+  var score = 0;
+  var answered = false;
+
+  // ─── DOM ───
+  var cardArea = document.getElementById('quiz-card-area');
+  var cardEl = document.getElementById('quiz-card');
+  var qText = document.getElementById('q-text');
+  var qOptions = document.getElementById('q-options');
+  var qDiff = document.getElementById('q-difficulty');
+  var qTags = document.getElementById('q-tags');
+  var qFeedback = document.getElementById('q-feedback');
+  var qFeedbackIcon = document.getElementById('q-feedback-icon');
+  var qFeedbackTitle = document.getElementById('q-feedback-title');
+  var qFeedbackText = document.getElementById('q-feedback-text');
+  var qNextWrap = document.getElementById('q-next-wrap');
+  var btnNext = document.getElementById('btn-next');
+  var progressLabel = document.getElementById('quiz-progress-label');
+  var scoreLabel = document.getElementById('quiz-score-label');
+  var progressBar = document.getElementById('quiz-progress-bar');
+  var resultsEl = document.getElementById('quiz-results');
+  var scoreRing = document.getElementById('score-ring');
+  var scoreDisplay = document.getElementById('score-display');
+  var resultTitle = document.getElementById('result-title');
+  var resultDesc = document.getElementById('result-desc');
+  var resultBest = document.getElementById('result-best');
+  var btnRestart = document.getElementById('btn-restart');
+  var bestEl = document.getElementById('quiz-best');
+  var bestVal = document.getElementById('quiz-best-val');
+  var bestTotal = document.getElementById('quiz-best-total');
+
+  var LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+  var diffStyles = {
+    'fácil': 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400',
+    'media': 'border-amber-500/30 bg-amber-500/10 text-amber-400',
+    'difícil': 'border-red-500/30 bg-red-500/10 text-red-400',
+  };
+
+  // ─── LocalStorage ───
+  function getBest() {
+    try {
+      var raw = localStorage.getItem(BEST_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  function saveBest(s, t) {
+    try { localStorage.setItem(BEST_KEY, JSON.stringify({ score: s, total: t })); }
+    catch (e) { /* noop */ }
+  }
+
+  // ─── Shuffle ───
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  // ─── Show best score badge ───
+  function showBest() {
+    var best = getBest();
+    if (best) {
+      bestVal.textContent = best.score;
+      bestTotal.textContent = best.total;
+      bestEl.classList.remove('hidden');
+    } else {
+      bestEl.classList.add('hidden');
+    }
+  }
+
+  // ─── Start quiz ───
+  function startQuiz() {
+    questions = shuffle(allQuestions);
+    current = 0;
+    score = 0;
+    answered = false;
+    resultsEl.classList.add('hidden');
+    cardArea.classList.remove('hidden');
+    showBest();
+    renderQuestion();
+  }
+
+  // ─── Render question ───
+  function renderQuestion() {
+    var q = questions[current];
+    answered = false;
+
+    qText.textContent = q.question;
+    qDiff.textContent = q.difficulty;
+    qDiff.className = 'label-caps rounded-full border px-3 py-1 ' + (diffStyles[q.difficulty] || '');
+
+    // Tags
+    qTags.innerHTML = '';
+    q.tags.forEach(function(tag) {
+      var span = document.createElement('span');
+      span.className = 'label-caps rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-primary-light';
+      span.textContent = tag;
+      qTags.appendChild(span);
+    });
+
+    // Options
+    qOptions.innerHTML = '';
+    q.options.forEach(function(opt, i) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'quiz-option';
+      btn.dataset.idx = String(i);
+
+      var marker = document.createElement('span');
+      marker.className = 'opt-marker';
+      marker.textContent = LETTERS[i];
+
+      var text = document.createElement('span');
+      text.textContent = opt;
+
+      btn.appendChild(marker);
+      btn.appendChild(text);
+      btn.addEventListener('click', function() { selectAnswer(i); });
+      qOptions.appendChild(btn);
+    });
+
+    qFeedback.classList.add('hidden');
+    qNextWrap.classList.add('hidden');
+    updateProgress();
+
+    cardEl.classList.remove('slide-out');
+    cardEl.classList.add('slide-in');
+    setTimeout(function() { cardEl.classList.remove('slide-in'); }, 300);
+  }
+
+  // ─── Select answer ───
+  function selectAnswer(idx) {
+    if (answered) return;
+    answered = true;
+
+    var q = questions[current];
+    var isCorrect = idx === q.correctOptionIndex;
+    if (isCorrect) score++;
+
+    var buttons = qOptions.querySelectorAll('.quiz-option');
+    buttons.forEach(function(btn, i) {
+      btn.disabled = true;
+      if (i === q.correctOptionIndex) {
+        btn.classList.add('correct');
+      } else if (i === idx && !isCorrect) {
+        btn.classList.add('wrong');
+      } else {
+        btn.classList.add('dimmed');
+      }
+    });
+
+    // Feedback
+    qFeedback.classList.remove('hidden');
+    if (isCorrect) {
+      qFeedback.className = 'mt-8 rounded-xl border p-5 border-emerald-500/30 bg-emerald-500/[0.06]';
+      qFeedbackIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#34d399" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
+      qFeedbackTitle.textContent = '¡Correcto!';
+      qFeedbackTitle.style.color = '#34d399';
+    } else {
+      qFeedback.className = 'mt-8 rounded-xl border p-5 border-red-500/30 bg-red-500/[0.06]';
+      qFeedbackIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#f87171" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>';
+      qFeedbackTitle.textContent = 'Incorrecto';
+      qFeedbackTitle.style.color = '#f87171';
+    }
+    qFeedbackText.textContent = q.explanation;
+
+    qNextWrap.classList.remove('hidden');
+    updateProgress();
+
+    // Update next button text on last question
+    if (current === questions.length - 1) {
+      btnNext.innerHTML = 'Ver resultados <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>';
+    }
+  }
+
+  // ─── Next question ───
+  function nextQuestion() {
+    if (current >= questions.length - 1) {
+      showResults();
+      return;
+    }
+    cardEl.classList.add('slide-out');
+    setTimeout(function() {
+      current++;
+      renderQuestion();
+    }, 280);
+  }
+
+  // ─── Show results ───
+  function showResults() {
+    cardArea.classList.add('hidden');
+    resultsEl.classList.remove('hidden');
+
+    var pct = questions.length > 0 ? (score / questions.length) : 0;
+    scoreDisplay.textContent = score + '/' + questions.length;
+
+    // Animate ring
+    var circumference = 339.292;
+    setTimeout(function() {
+      scoreRing.style.strokeDashoffset = String(circumference * (1 - pct));
+    }, 100);
+
+    // Ring color
+    if (pct >= 0.8) {
+      scoreRing.setAttribute('stroke', '#34d399');
+    } else if (pct >= 0.5) {
+      scoreRing.setAttribute('stroke', '#fbbf24');
+    } else {
+      scoreRing.setAttribute('stroke', '#f87171');
+    }
+
+    // Title & description
+    if (pct === 1) {
+      resultTitle.textContent = '¡Perfecto!';
+      resultDesc.textContent = 'Conoces el lore de BTS a la perfección. Eres un verdadero experto.';
+    } else if (pct >= 0.8) {
+      resultTitle.textContent = '¡Excelente!';
+      resultDesc.textContent = 'Tienes un conocimiento sólido del universo narrativo. ¡Sigue así!';
+    } else if (pct >= 0.5) {
+      resultTitle.textContent = 'Buen intento';
+      resultDesc.textContent = 'Conoces lo básico, pero hay detalles que puedes profundizar. Prueba el Modo Estudio.';
+    } else {
+      resultTitle.textContent = 'Sigue explorando';
+      resultDesc.textContent = 'El universo BTS es vasto. Visita las guías y el glosario para aprender más antes de intentarlo de nuevo.';
+    }
+
+    // Best score
+    var best = getBest();
+    var isNewBest = !best || score > best.score || (score === best.score && questions.length < best.total);
+    if (isNewBest) {
+      saveBest(score, questions.length);
+      resultBest.textContent = '🏆 ¡Nuevo mejor puntaje!';
+      resultBest.classList.remove('hidden');
+    } else {
+      resultBest.classList.add('hidden');
+    }
+
+    // Reset next button text
+    btnNext.innerHTML = 'Siguiente <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>';
+  }
+
+  // ─── Progress ───
+  function updateProgress() {
+    var total = questions.length;
+    progressLabel.textContent = 'Pregunta ' + (current + 1) + ' de ' + total;
+    progressBar.style.width = ((current + (answered ? 1 : 0)) / total * 100) + '%';
+    if (score > 0) {
+      scoreLabel.textContent = score + ' correcta' + (score === 1 ? '' : 's');
+    } else {
+      scoreLabel.textContent = '';
+    }
+  }
+
+  // ─── Events ───
+  btnNext.addEventListener('click', nextQuestion);
+  btnRestart.addEventListener('click', startQuiz);
+
+  // Keyboard: 1-4 to select, Enter/→ to advance
+  document.addEventListener('keydown', function(e) {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    var q = questions[current];
+    if (!q) return;
+
+    if (!answered) {
+      var num = parseInt(e.key);
+      if (num >= 1 && num <= q.options.length) {
+        e.preventDefault();
+        selectAnswer(num - 1);
+      }
+    } else {
+      if (e.key === 'Enter' || e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        nextQuestion();
+      }
+    }
+  });
+
+  // ─── Boot ───
+  startQuiz();
+</script>

@@ -1,5 +1,6 @@
 ---
 // TheoryForm.astro
+import SimpleMarkdownEditor from './SimpleMarkdownEditor.astro';
 ---
 <div class="glass-card p-6">
   <h3 class="font-serif text-xl text-on-surface mb-4">Nueva Teoría</h3>
@@ -28,7 +29,7 @@
     </div>
     <div>
       <label class="block text-sm text-on-surface-variant mb-1">Contenido</label>
-      <textarea name="content" required rows="4" class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface"></textarea>
+      <SimpleMarkdownEditor id="theory-editor" name="content" rows={6} required={true} placeholder="Escribe el contenido de la teoría…" />
     </div>
     <button type="submit" class="bg-surface-bright border border-border text-on-surface px-4 py-2 rounded font-semibold w-full hover:bg-surface-variant transition-colors">
       Publicar Teoría

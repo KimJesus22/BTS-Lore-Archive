@@ -1,0 +1,361 @@
+---
+// TheoryImport.astro — Importar teoría desde Markdown
+---
+<div class="glass-card p-6">
+  <div class="mb-5 flex items-center justify-between border-b border-border/50 pb-4">
+    <div>
+      <h3 class="font-serif text-xl text-on-surface">Importar Teoría desde Markdown</h3>
+      <p class="text-xs text-on-surface-variant mt-1">Pega contenido Markdown y se extraerán título, etiquetas y cuerpo.</p>
+    </div>
+    <button
+      id="import-md-help-toggle"
+      type="button"
+      class="text-xs text-primary-light hover:text-white transition-colors underline underline-offset-2"
+      aria-expanded="false"
+      aria-controls="import-md-help"
+    >
+      Ver formato
+    </button>
+  </div>
+
+  <!-- Bloque de ayuda (oculto por defecto) -->
+  <div id="import-md-help" class="hidden mb-5 rounded-lg border border-border/50 bg-white/[0.03] p-4 text-sm text-on-surface-variant leading-relaxed">
+    <p class="font-semibold text-on-surface mb-2">Formato Markdown esperado:</p>
+    <pre class="overflow-x-auto rounded bg-surface-dim p-3 text-xs text-on-surface-variant font-mono whitespace-pre">
+# Título de la teoría
+
+tags: hyyh, wings, smeraldo
+
+Contenido de la teoría aquí...
+
+## Secciones opcionales
+
+Más contenido...
+    </pre>
+    <ul class="mt-3 space-y-1 text-xs list-disc list-inside">
+      <li>El <strong>título</strong> se extrae del primer <code class="text-primary-light"># heading</code>.</li>
+      <li>Los <strong>tags</strong> se extraen de una línea que empiece con <code class="text-primary-light">tags:</code> (separados por coma). Es opcional.</li>
+      <li>Todo lo demás se toma como <strong>contenido</strong>.</li>
+    </ul>
+  </div>
+
+  <!-- Paso 1: Pegar Markdown -->
+  <div id="import-step-paste">
+    <label for="import-md-input" class="block text-sm text-on-surface-variant mb-1">Contenido Markdown</label>
+    <textarea
+      id="import-md-input"
+      rows="10"
+      placeholder="Pega tu Markdown aquí..."
+      class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface text-sm font-mono resize-y"
+    ></textarea>
+    <button
+      id="import-md-parse"
+      type="button"
+      class="mt-3 bg-surface-bright border border-border text-on-surface px-4 py-2 rounded font-semibold w-full hover:bg-surface-variant transition-colors"
+    >
+      Analizar Markdown
+    </button>
+    <p id="import-md-parse-error" class="text-sm text-center hidden mt-2 text-red-400"></p>
+  </div>
+
+  <!-- Paso 2: Preview + Edición -->
+  <div id="import-step-preview" class="hidden">
+    <form id="import-md-form" class="space-y-4">
+      <div>
+        <label for="import-edit-title" class="block text-sm text-on-surface-variant mb-1">Título</label>
+        <input
+          type="text"
+          id="import-edit-title"
+          name="title"
+          required
+          class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface"
+        />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="import-edit-tags" class="block text-sm text-on-surface-variant mb-1">Etiquetas <span class="text-on-surface-variant/50">(separadas por coma)</span></label>
+          <input
+            type="text"
+            id="import-edit-tags"
+            name="tags"
+            class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface"
+            placeholder="hyyh, wings, smeraldo"
+          />
+        </div>
+        <div>
+          <label for="import-edit-status" class="block text-sm text-on-surface-variant mb-1">Estado</label>
+          <select
+            id="import-edit-status"
+            name="status"
+            class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface"
+          >
+            <option value="published">Publicado</option>
+            <option value="draft">Borrador</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label for="import-edit-content" class="block text-sm text-on-surface-variant mb-1">Contenido</label>
+        <textarea
+          id="import-edit-content"
+          name="content"
+          required
+          rows="8"
+          class="w-full bg-surface-dim border border-border rounded px-3 py-2 text-on-surface text-sm font-mono resize-y"
+        ></textarea>
+      </div>
+
+      <!-- Preview visual -->
+      <details class="rounded-lg border border-border/50 bg-white/[0.03]">
+        <summary class="cursor-pointer px-4 py-2 text-sm font-semibold text-primary-light hover:text-white transition-colors select-none">
+          Vista previa
+        </summary>
+        <div id="import-preview-render" class="px-4 pb-4 pt-2 prose prose-invert prose-sm max-w-none text-on-surface-variant leading-relaxed">
+        </div>
+      </details>
+
+      <div class="flex gap-3">
+        <button
+          type="button"
+          id="import-md-back"
+          class="flex-1 bg-white/5 border border-border text-on-surface-variant px-4 py-2 rounded font-semibold hover:bg-white/10 transition-colors"
+        >
+          Volver
+        </button>
+        <button
+          type="submit"
+          class="flex-1 bg-surface-bright border border-border text-on-surface px-4 py-2 rounded font-semibold hover:bg-surface-variant transition-colors"
+        >
+          Guardar Teoría
+        </button>
+      </div>
+
+      <p id="import-md-msg" class="text-sm text-center hidden mt-2"></p>
+    </form>
+  </div>
+</div>
+
+<script>
+  import { createTheory } from '../../services/theories.service';
+
+  /* ── Elementos DOM ── */
+  const helpToggle  = document.getElementById('import-md-help-toggle') as HTMLButtonElement | null;
+  const helpBlock   = document.getElementById('import-md-help');
+
+  const stepPaste   = document.getElementById('import-step-paste');
+  const stepPreview = document.getElementById('import-step-preview');
+
+  const mdInput     = document.getElementById('import-md-input') as HTMLTextAreaElement | null;
+  const parseBtn    = document.getElementById('import-md-parse') as HTMLButtonElement | null;
+  const parseError  = document.getElementById('import-md-parse-error');
+
+  const form        = document.getElementById('import-md-form') as HTMLFormElement | null;
+  const editTitle   = document.getElementById('import-edit-title') as HTMLInputElement | null;
+  const editTags    = document.getElementById('import-edit-tags') as HTMLInputElement | null;
+  const editContent = document.getElementById('import-edit-content') as HTMLTextAreaElement | null;
+  const editStatus  = document.getElementById('import-edit-status') as HTMLSelectElement | null;
+  const previewDiv  = document.getElementById('import-preview-render');
+  const backBtn     = document.getElementById('import-md-back') as HTMLButtonElement | null;
+  const msg         = document.getElementById('import-md-msg');
+
+  /* ── Alternar ayuda ── */
+  helpToggle?.addEventListener('click', () => {
+    const expanded = helpToggle.getAttribute('aria-expanded') === 'true';
+    helpToggle.setAttribute('aria-expanded', String(!expanded));
+    helpBlock?.classList.toggle('hidden');
+  });
+
+  /* ── Parser de Markdown ── */
+  function parseMarkdown(raw: string) {
+    const lines = raw.split(/\r?\n/);
+    let title = '';
+    const tags: string[] = [];
+    const contentLines: string[] = [];
+    let titleFound = false;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      // Extraer título del primer # heading
+      if (!titleFound) {
+        const headingMatch = trimmed.match(/^#\s+(.+)$/);
+        if (headingMatch) {
+          title = headingMatch[1].trim();
+          titleFound = true;
+          continue;
+        }
+      }
+
+      // Extraer tags de línea "tags: ..."
+      const tagsMatch = trimmed.match(/^tags:\s*(.+)$/i);
+      if (tagsMatch && tags.length === 0) {
+        const parsed = tagsMatch[1]
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
+        tags.push(...parsed);
+        continue;
+      }
+
+      contentLines.push(line);
+    }
+
+    // Limpiar líneas vacías al inicio y final del contenido
+    while (contentLines.length > 0 && contentLines[0].trim() === '') {
+      contentLines.shift();
+    }
+    while (contentLines.length > 0 && contentLines[contentLines.length - 1].trim() === '') {
+      contentLines.pop();
+    }
+
+    return { title, tags, content: contentLines.join('\n') };
+  }
+
+  /* ── Generador de preview simplificado (sin librerías) ── */
+  function renderSimplePreview(md: string): string {
+    const escaped = md
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    return escaped
+      .split(/\n/)
+      .map((line) => {
+        const trimmed = line.trim();
+
+        // Headings
+        const h3 = trimmed.match(/^###\s+(.+)$/);
+        if (h3) return `<h4 class="text-sm font-bold text-primary-light mt-3 mb-1">${h3[1]}</h4>`;
+
+        const h2 = trimmed.match(/^##\s+(.+)$/);
+        if (h2) return `<h3 class="text-base font-bold text-on-surface mt-4 mb-1">${h2[1]}</h3>`;
+
+        // Blockquote
+        if (trimmed.startsWith('&gt; ')) {
+          return `<blockquote class="border-l-2 border-primary/40 pl-3 italic text-on-surface-variant">${trimmed.slice(5)}</blockquote>`;
+        }
+
+        // List item
+        if (trimmed.startsWith('- ')) {
+          return `<li class="ml-4 list-disc">${trimmed.slice(2)}</li>`;
+        }
+
+        // Empty line
+        if (!trimmed) return '<br/>';
+
+        // Paragraph
+        return `<p>${trimmed}</p>`;
+      })
+      .join('\n');
+  }
+
+  /* ── Paso 1 → Paso 2 ── */
+  parseBtn?.addEventListener('click', () => {
+    const raw = mdInput?.value ?? '';
+    if (!raw.trim()) {
+      if (parseError) {
+        parseError.textContent = 'Pega contenido Markdown primero.';
+        parseError.classList.remove('hidden');
+      }
+      return;
+    }
+
+    const { title, tags, content } = parseMarkdown(raw);
+
+    if (!title) {
+      if (parseError) {
+        parseError.textContent = 'No se encontró un título (# Heading) en el Markdown.';
+        parseError.classList.remove('hidden');
+      }
+      return;
+    }
+
+    parseError?.classList.add('hidden');
+
+    // Rellenar campos editables
+    if (editTitle)   editTitle.value   = title;
+    if (editTags)    editTags.value    = tags.join(', ');
+    if (editContent) editContent.value = content;
+
+    // Generar preview
+    if (previewDiv) {
+      previewDiv.innerHTML = renderSimplePreview(content);
+    }
+
+    // Cambiar paso
+    stepPaste?.classList.add('hidden');
+    stepPreview?.classList.remove('hidden');
+  });
+
+  /* ── Volver ── */
+  backBtn?.addEventListener('click', () => {
+    stepPreview?.classList.add('hidden');
+    stepPaste?.classList.remove('hidden');
+  });
+
+  /* ── Actualizar preview al editar contenido ── */
+  editContent?.addEventListener('input', () => {
+    if (previewDiv) {
+      previewDiv.innerHTML = renderSimplePreview(editContent.value);
+    }
+  });
+
+  /* ── Guardar teoría ── */
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!msg) return;
+
+    const title   = editTitle?.value.trim() ?? '';
+    const content = editContent?.value.trim() ?? '';
+    const status  = editStatus?.value ?? 'draft';
+    const tagsRaw = editTags?.value ?? '';
+    const tags    = tagsRaw.split(',').map((t) => t.trim()).filter(Boolean);
+
+    if (!title || !content) {
+      msg.textContent = 'Título y contenido son obligatorios.';
+      msg.className = 'text-sm text-center mt-2 text-red-400 block';
+      return;
+    }
+
+    const slug = title
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+
+    const newTheory = {
+      id: crypto.randomUUID(),
+      title,
+      slug,
+      content,
+      tags,
+      status,
+    };
+
+    try {
+      msg.textContent = 'Guardando...';
+      msg.className = 'text-sm text-center mt-2 text-on-surface-variant block';
+
+      await createTheory(newTheory);
+
+      msg.textContent = '¡Teoría importada con éxito!';
+      msg.className = 'text-sm text-center mt-2 text-primary-light block';
+      form.reset();
+
+      // Volver al paso de pegado después de un momento
+      window.setTimeout(() => {
+        stepPreview?.classList.add('hidden');
+        stepPaste?.classList.remove('hidden');
+        if (mdInput) mdInput.value = '';
+        msg.classList.add('hidden');
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+      msg.textContent = 'Error al guardar. Revisa la consola.';
+      msg.className = 'text-sm text-center mt-2 text-red-400 block';
+    }
+  });
+</script>

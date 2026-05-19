@@ -140,3 +140,7 @@ Available languages:
 - **BaaS**: InsForge (will be connected in a later phase)
 - **Language**: All user-facing text, UI elements, and content must be in strictly Spanish (es).
 - **Shell**: PowerShell (classic). Use `;` to chain commands, NOT `&&` (which is unsupported in this version). Example: `git add . ; git commit -m "msg"`
+- **Strict Typing (CRITICAL)**: Always verify the exact prop names and types defined in component interfaces before using them (e.g., `level` instead of `spoilerLevel`, `description` instead of `message`). Use `view_file` on the target component first if unsure.
+- **Astro Syntax**: Always ensure that all HTML tags are properly closed inside `.astro` files. Double-check nested structures like `<header>` and `<div>` tags.
+- **Astro JSX Escaping**: In `.astro` template markup (outside `---` and `<script>`), the characters `>`, `<`, `{`, `}` are special to the JSX parser. To render them as literal text, use JSX expressions (e.g., `{'> cita'}`) or HTML entities (`&gt;`, `&lt;`). This does NOT apply inside `<script>` or frontmatter blocks.
+- **Verification**: Do NOT run `pnpm astro check` or `pnpm build` automatically. Only run either when the user explicitly requests it.

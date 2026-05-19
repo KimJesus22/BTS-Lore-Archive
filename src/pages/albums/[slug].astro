@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SpoilerBlock from '../../components/SpoilerBlock.astro';
+import { albums } from '../../data/albums';
+import type { Album } from '../../types/albums';
+
+export function getStaticPaths() {
+  return albums.map((album) => ({
+    params: { slug: album.slug },
+    props: { album },
+  }));
+}
+
+interface Props {
+  album: Album;
+}
+
+const { album } = Astro.props;
+---
+
+<BaseLayout title={`${album.title} | Álbumes`} description={album.description}>
+  
+  <article class="max-w-[800px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    
+    <header class="mb-12 md:mb-16">
+      <div class="flex items-center gap-3 mb-6">
+        <a href="/albums" class="text-on-surface-variant hover:text-primary-light transition-colors font-mono text-sm tracking-wide flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          Álbumes
+        </a>
+      </div>
+
+      <div class="aspect-[21/9] w-full rounded-2xl bg-surface border border-white/5 overflow-hidden relative mb-10 flex items-center justify-center">
+        <div class="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/30 via-surface to-surface"></div>
+        <span class="font-serif text-5xl md:text-7xl font-bold text-white/5 uppercase tracking-widest text-center px-4 mix-blend-overlay">
+          {album.title.split(' ')[0]}
+        </span>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-wrap items-center gap-4">
+          <span class="label-caps px-3 py-1 bg-white/5 rounded-full border border-white/10">{album.releaseDate}</span>
+          <a href={`/eras/${album.eraSlug}`} class="label-caps px-3 py-1 bg-primary/10 text-primary-light rounded-full border border-primary/20 hover:bg-primary/20 transition-colors">
+            Era: {album.eraSlug.toUpperCase()}
+          </a>
+        </div>
+        
+        <h1 class="text-headline-lg md:text-display-sm font-serif text-on-surface leading-tight mt-2">{album.title}</h1>
+        
+        <p class="text-xl text-on-surface-variant leading-relaxed mt-4 font-serif italic">
+          {album.description}
+        </p>
+
+        {album.themes && album.themes.length > 0 && (
+          <div class="mt-6 flex flex-wrap gap-2">
+            {album.themes.map((theme) => (
+              <span class="text-sm font-mono px-3 py-1.5 bg-surface/50 rounded-lg text-on-surface border border-white/5">
+                {theme}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </header>
+
+    <SpoilerBlock level={album.spoilerLevel ?? 'none'}>
+      <section class="mt-16">
+        <h2 class="text-2xl font-serif font-bold text-on-surface mb-8 pb-4 border-b border-border/50">Tracklist & Lore</h2>
+        
+        <div class="space-y-6">
+          {album.songs.map((song) => (
+            <div class="glass-card p-6 md:p-8">
+              <div class="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-4 mb-4">
+                <span class="font-mono text-primary-light font-bold text-lg">{String(song.trackNumber).padStart(2, '0')}</span>
+                <h3 class="text-xl font-serif font-bold text-on-surface hover:text-primary-light transition-colors">
+                  <a href={`/songs/${song.slug}`}>{song.title}</a>
+                </h3>
+              </div>
+              
+              {song.loreSummary ? (
+                <div class="space-y-6">
+                  <p class="text-on-surface-variant leading-relaxed text-body-md">
+                    {song.loreSummary}
+                  </p>
+                  
+                  {(song.relatedSymbols?.length || song.relatedTheories?.length) ? (
+                    <div class="pt-4 border-t border-white/5 flex flex-col sm:flex-row gap-4">
+                      {song.relatedSymbols && song.relatedSymbols.length > 0 && (
+                        <div>
+                          <p class="text-xs font-mono text-on-surface-variant/70 uppercase tracking-widest mb-2">Símbolos</p>
+                          <div class="flex flex-wrap gap-2">
+                            {song.relatedSymbols.map((sym) => (
+                              <a href={`/symbols/${sym}`} class="text-sm px-2 py-1 bg-secondary-dim/10 text-on-surface border border-secondary-dim/20 rounded hover:bg-secondary-dim/20 transition-colors">
+                                {sym.replace(/-/g, ' ')}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {song.relatedTheories && song.relatedTheories.length > 0 && (
+                        <div>
+                          <p class="text-xs font-mono text-on-surface-variant/70 uppercase tracking-widest mb-2">Teorías</p>
+                          <div class="flex flex-wrap gap-2">
+                            {song.relatedTheories.map((theory) => (
+                              <a href={`/theories/${theory}`} class="text-sm px-2 py-1 bg-primary/10 text-on-surface border border-primary/20 rounded hover:bg-primary/20 transition-colors">
+                                {theory.replace(/-/g, ' ')}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <p class="text-on-surface-variant/50 text-sm italic">Sin conexiones críticas registradas en la narrativa central.</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    </SpoilerBlock>
+    
+  </article>
+</BaseLayout>

@@ -164,6 +164,23 @@ const { blocks: contentBlocks, headings } = parseTheoryContent(theory.content);
           >
             Copiar enlace
           </button>
+          <button
+            id="export-md-button"
+            type="button"
+            aria-label={`Descargar la teoría "${theory.title}" como archivo Markdown`}
+            data-title={theory.title}
+            data-date={theory.created_at ?? ''}
+            data-tags={JSON.stringify(theory.tags ?? [])}
+            data-content={theory.content}
+            data-related={JSON.stringify(relatedTheories.map((r: Theory) => ({ title: r.title, slug: r.slug })))}
+            data-slug={theory.slug}
+            class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-on-surface-variant transition-colors hover:border-primary/40 hover:text-primary-light"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            Exportar Markdown
+          </button>
         </div>
       </div>
 
@@ -316,4 +333,84 @@ const { blocks: contentBlocks, headings } = parseTheoryContent(theory.content);
 
   toggleBackToTop();
   window.addEventListener('scroll', toggleBackToTop, { passive: true });
+
+  /* ── Exportar como Markdown ── */
+  const exportButton = document.getElementById('export-md-button') as HTMLButtonElement | null;
+
+  exportButton?.addEventListener('click', () => {
+    const title   = exportButton.dataset.title ?? 'Sin título';
+    const date    = exportButton.dataset.date ?? '';
+    const tags: string[]    = JSON.parse(exportButton.dataset.tags ?? '[]');
+    const content = exportButton.dataset.content ?? '';
+    const related: { title: string; slug: string }[] = JSON.parse(exportButton.dataset.related ?? '[]');
+    const slug    = exportButton.dataset.slug ?? 'teoria';
+
+    const parts: string[] = [];
+
+    // Título
+    parts.push(`# ${title}`);
+    parts.push('');
+
+    // Metadatos
+    if (date) {
+      const d = new Date(date);
+      const formatted = Number.isNaN(d.getTime())
+        ? date
+        : new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+      parts.push(`**Fecha:** ${formatted}`);
+    }
+    if (tags.length > 0) {
+      parts.push(`**Etiquetas:** ${tags.join(', ')}`);
+    }
+    parts.push('');
+    parts.push('---');
+    parts.push('');
+
+    // Contenido
+    parts.push(content);
+    parts.push('');
+
+    // Enlaces relacionados
+    if (related.length > 0) {
+      parts.push('---');
+      parts.push('');
+      parts.push('## Teorías relacionadas');
+      parts.push('');
+      related.forEach((r) => {
+        parts.push(`- [${r.title}](/theories/${r.slug})`);
+      });
+      parts.push('');
+    }
+
+    const markdown = parts.join('\n');
+
+    // Sanitizar nombre de archivo
+    const safeName = slug
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9-]+/gi, '_')
+      .replace(/(^_|_$)+/g, '')
+      .substring(0, 100) || 'teoria';
+
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `${safeName}.md`;
+    document.body.appendChild(a);
+    a.click();
+
+    // Limpieza
+    window.setTimeout(() => {
+      a.remove();
+      URL.revokeObjectURL(url);
+    }, 100);
+
+    // Feedback visual
+    const originalText = exportButton.textContent;
+    exportButton.textContent = '¡Descargado!';
+    window.setTimeout(() => {
+      exportButton.textContent = originalText;
+    }, 1800);
+  });
 </script>

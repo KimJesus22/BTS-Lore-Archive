@@ -1,0 +1,376 @@
+---
+/**
+ * SimpleMarkdownEditor.astro
+ *
+ * Editor Markdown ligero con barra de herramientas y vista previa en vivo.
+ * Se integra como un campo <textarea name="content"> dentro de cualquier formulario.
+ *
+ * Props:
+ *  - id:          string  — prefijo único para evitar colisiones de IDs en la misma página.
+ *  - name:        string  — name del input (por defecto "content").
+ *  - rows:        number  — filas del textarea (por defecto 8).
+ *  - required:    boolean — si el campo es requerido.
+ *  - placeholder: string  — texto placeholder.
+ *  - value:       string  — valor inicial.
+ */
+interface Props {
+  id: string;
+  name?: string;
+  rows?: number;
+  required?: boolean;
+  placeholder?: string;
+  value?: string;
+}
+
+const {
+  id,
+  name = 'content',
+  rows = 8,
+  required = false,
+  placeholder = 'Escribe tu teoría aquí…',
+  value = '',
+} = Astro.props;
+
+const textareaId = `${id}-textarea`;
+const previewId  = `${id}-preview`;
+const toolbarId  = `${id}-toolbar`;
+---
+
+<div class="sme-wrapper" data-sme-id={id}>
+  <!-- Barra de herramientas -->
+  <div
+    id={toolbarId}
+    class="flex flex-wrap items-center gap-1 rounded-t-lg border border-b-0 border-border bg-surface-dim px-2 py-1.5"
+    role="toolbar"
+    aria-label="Herramientas de formato Markdown"
+    aria-controls={textareaId}
+  >
+    <button type="button" data-action="heading" class="sme-btn" title="Insertar título (##)" aria-label="Insertar título">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17 12l3-2v8"/>
+      </svg>
+      <span class="sr-only sm:not-sr-only text-[11px]">Título</span>
+    </button>
+
+    <button type="button" data-action="bold" class="sme-btn" title="Negritas (**texto**)" aria-label="Insertar negritas">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/>
+      </svg>
+      <span class="sr-only sm:not-sr-only text-[11px]">Negrita</span>
+    </button>
+
+    <button type="button" data-action="quote" class="sme-btn" title="Insertar cita (>)" aria-label="Insertar cita">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2z"/>
+        <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4z"/>
+      </svg>
+      <span class="sr-only sm:not-sr-only text-[11px]">Cita</span>
+    </button>
+
+    <button type="button" data-action="list" class="sme-btn" title="Insertar lista (- ítem)" aria-label="Insertar lista">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      <span class="sr-only sm:not-sr-only text-[11px]">Lista</span>
+    </button>
+
+    <button type="button" data-action="separator" class="sme-btn" title="Insertar separador (---)" aria-label="Insertar separador">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <line x1="3" y1="12" x2="21" y2="12"/>
+      </svg>
+      <span class="sr-only sm:not-sr-only text-[11px]">Separador</span>
+    </button>
+
+    <div class="ml-auto flex items-center gap-1">
+      <button type="button" data-action="toggle-preview" class="sme-btn sme-btn-accent" title="Alternar vista previa" aria-label="Alternar vista previa" aria-pressed="false">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        <span class="sr-only sm:not-sr-only text-[11px]">Preview</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Textarea + Preview -->
+  <div class="relative">
+    <textarea
+      id={textareaId}
+      name={name}
+      rows={rows}
+      required={required}
+      placeholder={placeholder}
+      class="sme-textarea w-full rounded-t-none rounded-b-lg border border-border bg-surface-dim px-3 py-2 font-mono text-sm text-on-surface resize-y focus:border-primary/60 focus:outline-none transition-colors"
+    >{value}</textarea>
+
+    <div
+      id={previewId}
+      class="sme-preview hidden absolute inset-0 overflow-y-auto rounded-b-lg border border-border bg-surface-dim/95 px-4 py-3 backdrop-blur-sm"
+      aria-live="polite"
+      aria-label="Vista previa del contenido Markdown"
+    >
+    </div>
+  </div>
+
+  <!-- Leyenda de formato -->
+  <p class="mt-1.5 text-[11px] text-on-surface-variant/60">
+    Soporta: <code class="text-primary-light/70">## título</code> ·
+    <code class="text-primary-light/70">**negrita**</code> ·
+    <code class="text-primary-light/70">{'> cita'}</code> ·
+    <code class="text-primary-light/70">- lista</code> ·
+    <code class="text-primary-light/70">---</code>
+  </p>
+</div>
+
+<style>
+  .sme-btn {
+    @apply inline-flex items-center gap-1 rounded px-2 py-1 text-on-surface-variant transition-colors;
+    @apply hover:bg-white/10 hover:text-on-surface;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary;
+  }
+
+  .sme-btn-accent {
+    @apply text-primary-light hover:text-white;
+  }
+
+  .sme-btn[aria-pressed="true"] {
+    @apply bg-primary/20 text-primary-light;
+  }
+
+  .sme-preview {
+    @apply text-sm leading-relaxed text-on-surface-variant;
+  }
+
+  .sme-preview h2 {
+    @apply text-lg font-serif font-bold text-on-surface mt-4 mb-1;
+  }
+
+  .sme-preview h3 {
+    @apply text-base font-serif font-bold text-primary-light mt-3 mb-1;
+  }
+
+  .sme-preview p {
+    @apply mb-2 leading-7;
+  }
+
+  .sme-preview strong {
+    @apply text-on-surface font-bold;
+  }
+
+  .sme-preview blockquote {
+    @apply border-l-2 border-secondary-dim/60 bg-secondary-dim/10 py-2 pl-4 pr-3 my-2 italic text-on-surface;
+  }
+
+  .sme-preview ul {
+    @apply list-disc pl-6 space-y-1 my-2;
+  }
+
+  .sme-preview li {
+    @apply pl-1 leading-6;
+  }
+
+  .sme-preview hr {
+    @apply border-border/50 my-4;
+  }
+
+  .sme-preview .sme-empty {
+    @apply text-on-surface-variant/40 italic;
+  }
+</style>
+
+<script>
+  /**
+   * Inicializa todas las instancias de SimpleMarkdownEditor en la página.
+   * Se usa un data-sme-id para aislar cada editor.
+   */
+  document.querySelectorAll<HTMLDivElement>('.sme-wrapper').forEach((wrapper) => {
+    const smeId = wrapper.dataset.smeId;
+    if (!smeId) return;
+
+    const textarea      = document.getElementById(`${smeId}-textarea`) as HTMLTextAreaElement | null;
+    const previewDiv    = document.getElementById(`${smeId}-preview`) as HTMLDivElement | null;
+    const toolbar       = document.getElementById(`${smeId}-toolbar`) as HTMLDivElement | null;
+    if (!textarea || !previewDiv || !toolbar) return;
+
+    const toggleBtn = toolbar.querySelector<HTMLButtonElement>('[data-action="toggle-preview"]');
+    let previewVisible = false;
+
+    /* ── Insertar formato en el textarea ── */
+    function insertFormat(action: string) {
+      if (!textarea) return;
+      textarea.focus();
+
+      const start = textarea.selectionStart;
+      const end   = textarea.selectionEnd;
+      const text  = textarea.value;
+      const selected = text.substring(start, end);
+
+      let before = '';
+      let after  = '';
+      let insert = '';
+      let cursorOffset = 0;
+
+      // Determinar si estamos al inicio de una línea
+      const lineStart = start === 0 || text[start - 1] === '\n';
+      const prefix = lineStart ? '' : '\n';
+
+      switch (action) {
+        case 'heading':
+          insert = `${prefix}## ${selected || 'Título'}`;
+          cursorOffset = selected ? insert.length : prefix.length + 3; // después de "## "
+          break;
+
+        case 'bold':
+          before = '**';
+          after  = '**';
+          insert = `${before}${selected || 'texto'}${after}`;
+          cursorOffset = selected ? insert.length : 2; // dentro de los **
+          break;
+
+        case 'quote':
+          insert = `${prefix}> ${selected || 'Cita'}`;
+          cursorOffset = selected ? insert.length : prefix.length + 2;
+          break;
+
+        case 'list':
+          if (selected) {
+            // Convertir líneas seleccionadas en lista
+            const items = selected.split('\n').map((line) => `- ${line}`).join('\n');
+            insert = `${prefix}${items}`;
+          } else {
+            insert = `${prefix}- Elemento`;
+          }
+          cursorOffset = selected ? insert.length : prefix.length + 2;
+          break;
+
+        case 'separator':
+          insert = `${prefix}\n---\n`;
+          cursorOffset = insert.length;
+          break;
+
+        default:
+          return;
+      }
+
+      // Insertar texto
+      textarea.value = text.substring(0, start) + insert + text.substring(end);
+
+      // Posicionar cursor
+      if (selected) {
+        textarea.selectionStart = start;
+        textarea.selectionEnd = start + cursorOffset;
+      } else {
+        const newPos = start + cursorOffset;
+        textarea.selectionStart = newPos;
+        textarea.selectionEnd = newPos + (action === 'bold' ? 5 : (action === 'heading' ? 6 : (action === 'quote' ? 4 : (action === 'list' ? 8 : 0))));
+      }
+
+      // Disparar input para actualizar preview
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    /* ── Toolbar click handler ── */
+    toolbar.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-action]');
+      if (!btn) return;
+
+      const action = btn.dataset.action;
+      if (!action) return;
+
+      if (action === 'toggle-preview') {
+        previewVisible = !previewVisible;
+        btn.setAttribute('aria-pressed', String(previewVisible));
+        previewDiv.classList.toggle('hidden', !previewVisible);
+        if (previewVisible) {
+          previewDiv.innerHTML = renderPreview(textarea.value);
+        }
+        return;
+      }
+
+      insertFormat(action);
+    });
+
+    /* ── Actualizar preview en vivo ── */
+    textarea.addEventListener('input', () => {
+      if (previewVisible && previewDiv) {
+        previewDiv.innerHTML = renderPreview(textarea.value);
+      }
+    });
+
+    /* ── Renderizar preview simplificado (seguro, sin innerHTML crudo) ── */
+    function renderPreview(md: string): string {
+      if (!md.trim()) {
+        return '<p class="sme-empty">La vista previa aparecerá aquí…</p>';
+      }
+
+      // Escapar HTML para sanitización
+      const escape = (s: string) =>
+        s.replace(/&/g, '&amp;')
+         .replace(/</g, '&lt;')
+         .replace(/>/g, '&gt;')
+         .replace(/"/g, '&quot;');
+
+      // Procesar negritas dentro de una línea
+      const inlineBold = (s: string) =>
+        s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+      const lines = md.split(/\r?\n/);
+      const html: string[] = [];
+      let inList = false;
+
+      for (const raw of lines) {
+        const line = escape(raw);
+        const trimmed = line.trim();
+
+        // Separador
+        if (/^-{3,}$/.test(trimmed)) {
+          if (inList) { html.push('</ul>'); inList = false; }
+          html.push('<hr/>');
+          continue;
+        }
+
+        // Headings
+        const h2 = trimmed.match(/^##\s+(.+)$/);
+        if (h2) {
+          if (inList) { html.push('</ul>'); inList = false; }
+          html.push(`<h2>${inlineBold(h2[1])}</h2>`);
+          continue;
+        }
+
+        const h3 = trimmed.match(/^###\s+(.+)$/);
+        if (h3) {
+          if (inList) { html.push('</ul>'); inList = false; }
+          html.push(`<h3>${inlineBold(h3[1])}</h3>`);
+          continue;
+        }
+
+        // Blockquote
+        if (trimmed.startsWith('&gt; ')) {
+          if (inList) { html.push('</ul>'); inList = false; }
+          html.push(`<blockquote>${inlineBold(trimmed.slice(5))}</blockquote>`);
+          continue;
+        }
+
+        // List item
+        if (trimmed.startsWith('- ')) {
+          if (!inList) { html.push('<ul>'); inList = true; }
+          html.push(`<li>${inlineBold(trimmed.slice(2))}</li>`);
+          continue;
+        }
+
+        // Cerrar lista si ya no hay items
+        if (inList) { html.push('</ul>'); inList = false; }
+
+        // Línea vacía
+        if (!trimmed) continue;
+
+        // Párrafo
+        html.push(`<p>${inlineBold(trimmed)}</p>`);
+      }
+
+      if (inList) html.push('</ul>');
+
+      return html.join('\n');
+    }
+  });
+</script>

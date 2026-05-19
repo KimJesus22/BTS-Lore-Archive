@@ -1,0 +1,464 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { getGlossaryTerms } from '../services/glossary.service';
+import { getSymbols } from '../services/symbols.service';
+import { getEras } from '../services/eras.service';
+
+/**
+ * Generación de flashcards:
+ *
+ * 1. GLOSARIO → pregunta: "¿Qué es «{término}»?"
+ *    respuesta: definición, categoría: "Glosario", dificultad según categoría
+ *
+ * 2. SÍMBOLOS → pregunta: "¿Qué representa el símbolo «{nombre}»?"
+ *    respuesta: shortDescription, categoría: "Símbolos", dificultad según spoilerLevel
+ *
+ * 3. ERAS → pregunta: "¿De qué trata la era «{título}»?"
+ *    respuesta: descripción + años, categoría: "Eras", dificultad: inicial
+ */
+
+interface Flashcard {
+  id: string;
+  question: string;
+  answer: string;
+  category: 'Glosario' | 'Símbolos' | 'Eras';
+  difficulty: 'fácil' | 'media' | 'difícil';
+}
+
+const glossary = await getGlossaryTerms();
+const symbols = await getSymbols();
+const eras = await getEras();
+
+const cards: Flashcard[] = [];
+
+// --- Glosario ---
+for (const term of glossary) {
+  cards.push({
+    id: `g-${term.id}`,
+    question: `¿Qué es «${term.term}»?`,
+    answer: term.definition,
+    category: 'Glosario',
+    difficulty: 'fácil',
+  });
+}
+
+// --- Símbolos ---
+for (const sym of symbols) {
+  const diff = sym.spoilerLevel === 'major' ? 'difícil' : sym.spoilerLevel === 'mild' ? 'media' : 'fácil';
+  cards.push({
+    id: `s-${sym.id}`,
+    question: `¿Qué representa el símbolo «${sym.name}»?`,
+    answer: sym.shortDescription,
+    category: 'Símbolos',
+    difficulty: diff,
+  });
+}
+
+// --- Eras ---
+for (const era of eras) {
+  const years = era.start_year && era.end_year ? ` (${era.start_year}–${era.end_year})` : '';
+  cards.push({
+    id: `e-${era.id}`,
+    question: `¿De qué trata la era «${era.title}»?`,
+    answer: `${era.description}${years}`,
+    category: 'Eras',
+    difficulty: 'fácil',
+  });
+}
+
+const cardsJSON = JSON.stringify(cards);
+---
+
+<BaseLayout title="Modo Estudio" description="Estudia conceptos del lore de BTS con flashcards interactivas.">
+  <div class="max-w-[720px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader
+      tag="Herramientas"
+      title="Modo Estudio"
+      description="Pon a prueba tu conocimiento del lore con tarjetas de estudio generadas desde el glosario, los símbolos y las eras."
+      align="center"
+    />
+
+    <!-- Filtros de categoría -->
+    <div class="mb-8 flex flex-wrap items-center justify-center gap-3" id="study-filters">
+      <button type="button" data-cat="all" class="study-filter active rounded-full border px-4 py-2 text-sm font-semibold transition-colors border-primary/50 bg-primary/20 text-primary-light">
+        Todas
+      </button>
+      <button type="button" data-cat="Glosario" class="study-filter rounded-full border px-4 py-2 text-sm font-semibold transition-colors border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-primary/35 hover:text-primary-light">
+        Glosario
+      </button>
+      <button type="button" data-cat="Símbolos" class="study-filter rounded-full border px-4 py-2 text-sm font-semibold transition-colors border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-primary/35 hover:text-primary-light">
+        Símbolos
+      </button>
+      <button type="button" data-cat="Eras" class="study-filter rounded-full border px-4 py-2 text-sm font-semibold transition-colors border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-primary/35 hover:text-primary-light">
+        Eras
+      </button>
+    </div>
+
+    <!-- Progreso -->
+    <div class="mb-6 flex items-center justify-between text-sm text-on-surface-variant">
+      <span id="study-progress-label">0 / 0</span>
+      <span id="study-score-label" class="font-mono text-xs tracking-wider uppercase"></span>
+    </div>
+    <div class="mb-10 h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+      <div id="study-progress-bar" class="h-full rounded-full bg-gradient-to-r from-primary to-primary-light transition-all duration-500" style="width: 0%"></div>
+    </div>
+
+    <!-- Flashcard -->
+    <div id="study-card-area">
+      <div id="study-card" class="study-card glass-card relative overflow-hidden p-8 md:p-12 min-h-[320px] flex flex-col items-center justify-center text-center cursor-pointer select-none" role="button" tabindex="0" aria-label="Voltear tarjeta">
+        <!-- Badges -->
+        <div class="absolute top-5 left-5 flex items-center gap-2">
+          <span id="card-category" class="label-caps rounded-full border border-primary/25 bg-primary/15 px-3 py-1 text-primary-light"></span>
+          <span id="card-difficulty" class="label-caps rounded-full border px-3 py-1"></span>
+        </div>
+
+        <!-- Question side -->
+        <div id="card-front" class="flex flex-col items-center justify-center gap-6">
+          <div class="flex items-center justify-center w-14 h-14 rounded-full border border-primary/30 bg-primary/10 text-primary-light">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+            </svg>
+          </div>
+          <p id="card-question" class="text-xl md:text-2xl font-serif font-bold text-on-surface leading-snug"></p>
+          <span class="text-xs text-on-surface-variant/60 font-mono tracking-wider uppercase mt-2">Toca para revelar</span>
+        </div>
+
+        <!-- Answer side (hidden) -->
+        <div id="card-back" class="hidden flex flex-col items-center justify-center gap-6">
+          <div class="flex items-center justify-center w-14 h-14 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+            </svg>
+          </div>
+          <p id="card-answer" class="text-lg md:text-xl text-on-surface-variant leading-relaxed max-w-lg"></p>
+        </div>
+      </div>
+
+      <!-- Action buttons (hidden until answer revealed) -->
+      <div id="study-actions" class="hidden mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button id="btn-knew" type="button" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-6 py-3 text-sm font-semibold text-emerald-400 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/50">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+          Lo sabía
+        </button>
+        <button id="btn-review" type="button" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-6 py-3 text-sm font-semibold text-amber-400 transition-all hover:bg-amber-500/20 hover:border-amber-500/50">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.992 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" /></svg>
+          Repasar después
+        </button>
+      </div>
+
+      <!-- Next button -->
+      <div id="study-next-wrap" class="hidden mt-6 flex justify-center">
+        <button id="btn-next" type="button" class="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-primary-light hover:shadow-[0_0_24px_rgba(109,40,217,0.4)]">
+          Siguiente
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Completion state (hidden initially) -->
+    <div id="study-complete" class="hidden text-center p-8 border border-white/10 rounded-2xl bg-gradient-to-b from-white/[0.03] to-transparent">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 mb-6 text-emerald-400">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342" /></svg>
+      </div>
+      <h3 class="text-2xl font-serif font-bold text-on-surface mb-3">¡Sesión completada!</h3>
+      <p id="study-summary" class="text-on-surface-variant mb-4 max-w-md mx-auto"></p>
+      <div id="study-review-count" class="mb-8 text-sm text-amber-400 font-semibold"></div>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button id="btn-restart" type="button" class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:bg-primary-light hover:shadow-[0_0_24px_rgba(109,40,217,0.4)]">
+          Estudiar de nuevo
+        </button>
+        <button id="btn-review-only" type="button" class="hidden inline-flex items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 px-6 py-3 text-sm font-semibold text-amber-400 transition-all hover:bg-amber-500/20">
+          Solo repasar pendientes
+        </button>
+        <button id="btn-reset" type="button" class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-6 py-3 text-sm font-semibold text-on-surface-variant transition-all hover:bg-white/[0.07]">
+          Reiniciar progreso
+        </button>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .study-card {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+  }
+  .study-card:hover {
+    box-shadow: 0 0 40px rgba(109, 40, 217, 0.12);
+  }
+  .study-card.flipping {
+    animation: card-flip 0.45s ease;
+  }
+  @keyframes card-flip {
+    0%   { transform: rotateY(0deg) scale(1); }
+    50%  { transform: rotateY(90deg) scale(0.95); }
+    100% { transform: rotateY(0deg) scale(1); }
+  }
+  .study-card.slide-out {
+    animation: slide-out 0.35s ease forwards;
+  }
+  @keyframes slide-out {
+    to { opacity: 0; transform: translateX(-40px) scale(0.97); }
+  }
+  .study-card.slide-in {
+    animation: slide-in 0.35s ease;
+  }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateX(40px) scale(0.97); }
+    to   { opacity: 1; transform: translateX(0) scale(1); }
+  }
+</style>
+
+<script define:vars={{ cardsJSON }}>
+  // ─── State ───
+  const STORAGE_KEY = 'bts-lore-study-progress';
+  const allCards = JSON.parse(cardsJSON);
+  let deck = [];
+  let currentIndex = 0;
+  let revealed = false;
+  let knew = 0;
+  let reviewLater = [];
+  let activeCategory = 'all';
+
+  // ─── DOM refs ───
+  const cardEl = document.getElementById('study-card');
+  const frontEl = document.getElementById('card-front');
+  const backEl = document.getElementById('card-back');
+  const questionEl = document.getElementById('card-question');
+  const answerEl = document.getElementById('card-answer');
+  const categoryBadge = document.getElementById('card-category');
+  const diffBadge = document.getElementById('card-difficulty');
+  const actionsEl = document.getElementById('study-actions');
+  const nextWrap = document.getElementById('study-next-wrap');
+  const progressLabel = document.getElementById('study-progress-label');
+  const scoreLabel = document.getElementById('study-score-label');
+  const progressBar = document.getElementById('study-progress-bar');
+  const cardArea = document.getElementById('study-card-area');
+  const completeEl = document.getElementById('study-complete');
+  const summaryEl = document.getElementById('study-summary');
+  const reviewCountEl = document.getElementById('study-review-count');
+  const btnKnew = document.getElementById('btn-knew');
+  const btnReview = document.getElementById('btn-review');
+  const btnNext = document.getElementById('btn-next');
+  const btnRestart = document.getElementById('btn-restart');
+  const btnReviewOnly = document.getElementById('btn-review-only');
+  const btnReset = document.getElementById('btn-reset');
+  const filters = document.querySelectorAll('.study-filter');
+
+  // ─── LocalStorage ───
+  function loadProgress() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : { known: [], review: [] };
+    } catch { return { known: [], review: [] }; }
+  }
+
+  function saveProgress(known, review) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ known, review }));
+    } catch (e) { console.warn('Error saving study progress', e); }
+  }
+
+  // ─── Shuffle ───
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // ─── Difficulty styling ───
+  const diffStyles = {
+    'fácil': 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400',
+    'media': 'border-amber-500/30 bg-amber-500/10 text-amber-400',
+    'difícil': 'border-red-500/30 bg-red-500/10 text-red-400',
+  };
+
+  // ─── Init / Start ───
+  function startSession(cardPool) {
+    deck = shuffle(cardPool);
+    currentIndex = 0;
+    knew = 0;
+    reviewLater = [];
+    revealed = false;
+    completeEl.classList.add('hidden');
+    cardArea.classList.remove('hidden');
+    if (deck.length > 0) {
+      showCard();
+    } else {
+      showEmpty();
+    }
+  }
+
+  function showEmpty() {
+    cardArea.classList.add('hidden');
+    completeEl.classList.remove('hidden');
+    summaryEl.textContent = 'No hay tarjetas disponibles para esta categoría.';
+    reviewCountEl.textContent = '';
+    btnReviewOnly.classList.add('hidden');
+  }
+
+  // ─── Show card ───
+  function showCard() {
+    const card = deck[currentIndex];
+    if (!card) return finishSession();
+
+    revealed = false;
+    frontEl.classList.remove('hidden');
+    backEl.classList.add('hidden');
+    actionsEl.classList.add('hidden');
+    nextWrap.classList.add('hidden');
+
+    questionEl.textContent = card.question;
+    answerEl.textContent = card.answer;
+    categoryBadge.textContent = card.category;
+
+    // Difficulty badge
+    diffBadge.textContent = card.difficulty;
+    diffBadge.className = 'label-caps rounded-full border px-3 py-1 ' + (diffStyles[card.difficulty] || '');
+
+    updateProgress();
+    cardEl.classList.remove('slide-out');
+    cardEl.classList.add('slide-in');
+    setTimeout(function() { cardEl.classList.remove('slide-in'); }, 350);
+  }
+
+  // ─── Reveal ───
+  function revealCard() {
+    if (revealed || currentIndex >= deck.length) return;
+    revealed = true;
+
+    cardEl.classList.add('flipping');
+    setTimeout(function() {
+      frontEl.classList.add('hidden');
+      backEl.classList.remove('hidden');
+      actionsEl.classList.remove('hidden');
+      cardEl.classList.remove('flipping');
+    }, 220);
+  }
+
+  // ─── Knew / Review ───
+  function markKnew() {
+    if (!revealed) return;
+    knew++;
+    advance();
+  }
+
+  function markReview() {
+    if (!revealed) return;
+    reviewLater.push(deck[currentIndex]);
+    advance();
+  }
+
+  function advance() {
+    actionsEl.classList.add('hidden');
+    cardEl.classList.add('slide-out');
+    setTimeout(function() {
+      currentIndex++;
+      showCard();
+    }, 300);
+  }
+
+  // ─── Finish ───
+  function finishSession() {
+    const progress = loadProgress();
+    // Merge known IDs
+    const knownSet = new Set(progress.known);
+    for (let i = 0; i < deck.length; i++) {
+      if (!reviewLater.find(function(r) { return r.id === deck[i].id; })) {
+        knownSet.add(deck[i].id);
+      }
+    }
+    const reviewIds = reviewLater.map(function(r) { return r.id; });
+    saveProgress(Array.from(knownSet), reviewIds);
+
+    cardArea.classList.add('hidden');
+    completeEl.classList.remove('hidden');
+    summaryEl.textContent = 'Acertaste ' + knew + ' de ' + deck.length + ' tarjetas.';
+    if (reviewLater.length > 0) {
+      reviewCountEl.textContent = reviewLater.length + ' tarjeta' + (reviewLater.length === 1 ? '' : 's') + ' pendiente' + (reviewLater.length === 1 ? '' : 's') + ' de repaso.';
+      btnReviewOnly.classList.remove('hidden');
+    } else {
+      reviewCountEl.textContent = '¡No tienes tarjetas pendientes!';
+      btnReviewOnly.classList.add('hidden');
+    }
+    updateProgress();
+  }
+
+  // ─── Progress ───
+  function updateProgress() {
+    var total = deck.length;
+    var current = Math.min(currentIndex + 1, total);
+    progressLabel.textContent = current + ' / ' + total;
+
+    var pct = total > 0 ? ((currentIndex) / total) * 100 : 0;
+    progressBar.style.width = pct + '%';
+
+    if (total > 0 && knew > 0) {
+      scoreLabel.textContent = knew + ' correcta' + (knew === 1 ? '' : 's');
+    } else {
+      scoreLabel.textContent = '';
+    }
+  }
+
+  // ─── Filter by category ───
+  function filterCards(cat) {
+    activeCategory = cat;
+    filters.forEach(function(f) {
+      var isActive = f.dataset.cat === cat;
+      f.classList.toggle('active', isActive);
+      f.classList.toggle('border-primary/50', isActive);
+      f.classList.toggle('bg-primary/20', isActive);
+      f.classList.toggle('text-primary-light', isActive);
+      f.classList.toggle('border-white/10', !isActive);
+      f.classList.toggle('bg-white/[0.03]', !isActive);
+      f.classList.toggle('text-on-surface-variant', !isActive);
+    });
+
+    var pool = cat === 'all' ? allCards : allCards.filter(function(c) { return c.category === cat; });
+    startSession(pool);
+  }
+
+  // ─── Event listeners ───
+  cardEl.addEventListener('click', revealCard);
+  cardEl.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); revealCard(); } });
+  btnKnew.addEventListener('click', markKnew);
+  btnReview.addEventListener('click', markReview);
+  btnNext.addEventListener('click', function() { currentIndex++; showCard(); });
+  btnRestart.addEventListener('click', function() { filterCards(activeCategory); });
+  btnReviewOnly.addEventListener('click', function() { startSession(reviewLater.slice()); });
+  btnReset.addEventListener('click', function() {
+    saveProgress([], []);
+    filterCards(activeCategory);
+  });
+
+  filters.forEach(function(f) {
+    f.addEventListener('click', function() { filterCards(f.dataset.cat); });
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    switch (e.key) {
+      case ' ':
+        e.preventDefault();
+        if (!revealed) revealCard();
+        break;
+      case '1':
+        if (revealed) markKnew();
+        break;
+      case '2':
+        if (revealed) markReview();
+        break;
+      case 'ArrowRight':
+        if (revealed) markKnew();
+        else revealCard();
+        break;
+    }
+  });
+
+  // ─── Boot ───
+  startSession(allCards);
+</script>
