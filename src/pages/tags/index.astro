@@ -1,7 +1,7 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PageHeader from '../components/PageHeader.astro';
-import { mockTags } from '../data/tags';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { mockTags } from '../../data/tags';
 
 const tags = mockTags.slice().sort((a, b) => a.name.localeCompare(b.name, 'es'));
 
