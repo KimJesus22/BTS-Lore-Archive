@@ -6,6 +6,7 @@ import TimelineForm from '../../components/admin/TimelineForm.astro';
 import TheoryForm from '../../components/admin/TheoryForm.astro';
 import GlossaryForm from '../../components/admin/GlossaryForm.astro';
 import TheoryImport from '../../components/admin/TheoryImport.astro';
+import ContentQuality from '../../components/admin/ContentQuality.astro';
 ---
 
 <BaseLayout title="Admin Dashboard" description="Panel interno para gestionar contenido del BTS Lore Archive. Pendiente de autenticación real antes de producción.">
@@ -55,6 +56,10 @@ import TheoryImport from '../../components/admin/TheoryImport.astro';
         <TheoryImport />
       </section>
 
+      <section class="xl:col-span-12">
+        <ContentQuality />
+      </section>
+
       <aside class="xl:col-span-4 space-y-8">
         <div class="glass-card p-6">
           <div class="mb-5 flex items-center justify-between border-b border-border/50 pb-4">
@@ -83,46 +88,114 @@ import TheoryImport from '../../components/admin/TheoryImport.astro';
       <div class="lg:col-span-2 glass-card p-8">
         <div class="flex items-center justify-between mb-8 pb-4 border-b border-border/50">
           <h2 class="text-xl font-serif text-on-surface">Actividad Reciente</h2>
-          <button class="text-sm text-primary-light hover:text-white transition-colors">Ver todo</button>
+          <button id="admin-clear-history" type="button" class="text-sm text-red-400 hover:text-red-300 transition-colors hidden">Limpiar historial</button>
         </div>
-        
-        <div class="space-y-6">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
-              <div class="w-2 h-2 rounded-full bg-secondary-dim shadow-[0_0_8px_#e9c349]"></div>
-              <div>
-                <p class="text-on-surface font-semibold text-sm">Nueva teoría enviada: "Omerlás y la estación nevada"</p>
-                <p class="text-on-surface-variant text-xs">Por ARMY_LORE hace 2 horas</p>
-              </div>
-            </div>
-            <button class="text-xs bg-white/5 hover:bg-white/10 px-3 py-1 rounded border border-white/10 transition-colors">Revisar</button>
-          </div>
-          
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
-              <div class="w-2 h-2 rounded-full bg-primary-light shadow-[0_0_8px_#d3bbff]"></div>
-              <div>
-                <p class="text-on-surface font-semibold text-sm">Evento de línea de tiempo actualizado</p>
-                <p class="text-on-surface-variant text-xs">Sistema hace 5 horas</p>
-              </div>
-            </div>
-            <span class="text-xs text-on-surface-variant">Aprobado</span>
-          </div>
+
+        <div id="admin-history-list" class="space-y-4">
+          <!-- Se renderiza dinámicamente desde localStorage -->
+        </div>
+
+        <div id="admin-history-empty" class="rounded-xl border border-dashed border-white/15 bg-white/[0.03] p-6 text-center">
+          <p class="font-semibold text-on-surface">No hay actividad registrada</p>
+          <p class="mt-2 text-sm leading-relaxed text-on-surface-variant">Las acciones que realices (crear eras, teorías, eventos, etc.) aparecerán aquí automáticamente.</p>
         </div>
       </div>
 
       <div class="space-y-6">
         <h2 class="text-xl font-serif text-on-surface mb-4">Acciones Rápidas</h2>
-        <button class="w-full text-left glass-card p-5 hover:border-primary/50 transition-colors group">
+        <a href="#era-form" class="w-full block text-left glass-card p-5 hover:border-primary/50 transition-colors group">
           <span class="block text-primary-light font-semibold mb-1 group-hover:text-white transition-colors">Añadir Nueva Era</span>
           <span class="block text-xs text-on-surface-variant">Crear un nuevo arco narrativo</span>
-        </button>
-        <button class="w-full text-left glass-card p-5 hover:border-secondary-dim/50 transition-colors group">
+        </a>
+        <a href="#timeline-form" class="w-full block text-left glass-card p-5 hover:border-secondary-dim/50 transition-colors group">
           <span class="block text-secondary-dim font-semibold mb-1 group-hover:text-white transition-colors">Registrar Evento</span>
           <span class="block text-xs text-on-surface-variant">Añadir nodo a la línea de tiempo</span>
-        </button>
+        </a>
       </div>
     </div>
 
   </div>
 </BaseLayout>
+
+<script>
+  import { getAdminHistory, clearAdminHistory } from '../../utils/adminHistory';
+
+  const listEl = document.getElementById('admin-history-list');
+  const emptyEl = document.getElementById('admin-history-empty');
+  const clearBtn = document.getElementById('admin-clear-history');
+
+  const actionLabels: Record<string, string> = {
+    created_era: 'Creó una era',
+    created_theory: 'Creó una teoría',
+    created_timeline_event: 'Registró un evento',
+    created_glossary_term: 'Añadió un término',
+    imported_markdown: 'Importó teoría desde Markdown',
+  };
+
+  const actionColors: Record<string, string> = {
+    created_era: 'bg-primary-light shadow-[0_0_8px_#d3bbff]',
+    created_theory: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]',
+    created_timeline_event: 'bg-secondary-dim shadow-[0_0_8px_#e9c349]',
+    created_glossary_term: 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.5)]',
+    imported_markdown: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]',
+  };
+
+  function timeAgo(isoStr: string): string {
+    const diff = Date.now() - new Date(isoStr).getTime();
+    const mins = Math.floor(diff / 60_000);
+    if (mins < 1) return 'Hace un momento';
+    if (mins < 60) return `Hace ${mins} min`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `Hace ${hrs} h`;
+    const days = Math.floor(hrs / 24);
+    return `Hace ${days} día${days === 1 ? '' : 's'}`;
+  }
+
+  function renderHistory() {
+    if (!listEl || !emptyEl || !clearBtn) return;
+
+    const history = getAdminHistory().slice(0, 10);
+
+    if (history.length === 0) {
+      listEl.innerHTML = '';
+      emptyEl.classList.remove('hidden');
+      clearBtn.classList.add('hidden');
+      return;
+    }
+
+    emptyEl.classList.add('hidden');
+    clearBtn.classList.remove('hidden');
+
+    listEl.innerHTML = history.map((entry) => {
+      const label = actionLabels[entry.action] || entry.action;
+      const dot = actionColors[entry.action] || 'bg-white/50';
+      const ago = timeAgo(entry.timestamp);
+
+      return `
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4 min-w-0">
+            <div class="w-2 h-2 flex-shrink-0 rounded-full ${dot}"></div>
+            <div class="min-w-0">
+              <p class="text-on-surface font-semibold text-sm truncate">${label}: "${entry.entityTitle}"</p>
+              <p class="text-on-surface-variant text-xs">${ago}</p>
+            </div>
+          </div>
+          <span class="flex-shrink-0 label-caps text-on-surface-variant/60 text-[10px]">${entry.entityType}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Escuchar actualizaciones en tiempo real
+  window.addEventListener('admin-history-updated', renderHistory);
+
+  // Limpiar historial
+  clearBtn?.addEventListener('click', () => {
+    if (window.confirm('¿Limpiar todo el historial de actividad?')) {
+      clearAdminHistory();
+    }
+  });
+
+  // Render inicial
+  renderHistory();
+</script>

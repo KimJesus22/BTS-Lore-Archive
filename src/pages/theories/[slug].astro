@@ -5,6 +5,7 @@ import EmptyState from '../../components/EmptyState.astro';
 import FavoriteButton from '../../components/FavoriteButton.astro';
 import PersonalNotes from '../../components/PersonalNotes.astro';
 import SpoilerBlock from '../../components/SpoilerBlock.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { getTheories } from '../../services/theories.service';
 import { calculateReadingTime } from '../../utils/readingTime';
 import type { Theory } from '../../types/content';
@@ -131,12 +132,7 @@ const { blocks: contentBlocks, headings } = parseTheoryContent(theory.content);
 
 <BaseLayout title={theory.title} description={metaDescription} canonical={`/theories/${theory.slug}`}>
   <article class="max-w-[960px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
-    <a href="/theories" class="mb-8 inline-flex items-center text-sm font-semibold text-on-surface-variant transition-colors hover:text-primary-light">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="mr-2 h-4 w-4" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-      </svg>
-      Volver a teorías
-    </a>
+    <Breadcrumbs items={[{ label: 'Teorías', href: '/theories' }, { label: theory.title }]} />
 
     <header class="mb-10 border-b border-border/50 pb-8">
       <div class="mb-5 flex flex-wrap items-center gap-3">

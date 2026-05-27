@@ -3,6 +3,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { guides } from '../../../data/guides';
 import { DIFFICULTY_LABELS } from '../../../types/guides';
 import SpoilerBlock from '../../../components/SpoilerBlock.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import type { Guide, GuideDifficulty } from '../../../types/guides';
 
 export async function getStaticPaths() {
@@ -43,15 +44,10 @@ const difficultyColors: Record<GuideDifficulty, { badge: string; icon: string }>
 >
   <article class="max-w-[800px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
     
-    {/* Navigation back */}
-    <div class="mb-10 flex items-center justify-between flex-wrap gap-4">
-      <a href="/guides" class="inline-flex items-center text-sm font-semibold text-on-surface-variant transition-colors hover:text-primary-light">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="mr-2 h-4 w-4" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-        </svg>
-        Volver a rutas de lectura
-      </a>
+    <Breadcrumbs items={[{ label: 'Guías', href: '/guides' }, { label: guide.title }]} />
 
+    {/* Navigation back */}
+    <div class="mb-10 flex items-center justify-end flex-wrap gap-4">
       <a
         href={`/guides/${guide.slug}/presentation`}
         class="inline-flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary-light transition-all hover:bg-primary/20 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(109,40,217,0.2)]"

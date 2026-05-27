@@ -12,7 +12,7 @@ Dentro del proyecto, encontrarás la siguiente estructura de directorios y archi
 /
 ├── public/                 # Archivos estáticos como imágenes y favicons
 ├── src/
-│   ├── components/         # Componentes UI (Card, Button, EmptyState, FavoriteButton, SearchInput/Results, admin/)
+│   ├── components/         # Componentes UI (Card, Button, EmptyState, FavoriteButton, SearchInput/Results, Breadcrumbs, admin/)
 │   ├── data/               # Datos de prueba (mock) estructurados por dominio (eras, members, guides, quiz, etc.)
 │   │   ├── albums.ts       # Catálogo de álbumes
 │   │   ├── connections.ts  # Relaciones cruzadas entre entidades del lore
@@ -25,6 +25,7 @@ Dentro del proyecto, encontrarás la siguiente estructura de directorios y archi
 │   │   ├── quiz.ts         # 15 preguntas de opción múltiple sobre el lore
 │   │   ├── roadmap.ts      # Fases del roadmap del proyecto
 │   │   ├── symbols.ts      # Simbología recurrente (Smeraldo, espejo, cámara, etc.)
+│   │   ├── tags.ts         # Sistema de etiquetas unificado
 │   │   ├── theories.ts     # Teorías populares de la comunidad
 │   │   └── timeline.ts     # Eventos cronológicos del universo narrativo
 │   ├── layouts/            # Plantillas maestras (BaseLayout) con soporte SEO para meta descripciones dinámicas
@@ -46,7 +47,7 @@ Dentro del proyecto, encontrarás la siguiente estructura de directorios y archi
 │   ├── services/           # Lógica de negocio, capa de servicios e indexador de búsqueda universal
 │   ├── styles/             # Archivos CSS globales (global.css con utilidades de Tailwind)
 │   ├── types/              # Definiciones y contratos de TypeScript (content.ts, guides.ts, symbols.ts)
-│   └── utils/              # Funciones auxiliares de utilidad (cálculo de tiempo de lectura, etc.)
+│   └── utils/              # Funciones auxiliares (cálculo de lectura, calidad de contenido, historial de admin, etc.)
 ├── .env                    # Variables de entorno (PUBLIC_INSFORGE_URL, PUBLIC_INSFORGE_ANON_KEY)
 ├── AGENTS.md               # Reglas estrictas de desarrollo y configuración del proyecto
 ├── DESIGN.md               # Sistema de diseño "Cosmic Archive" (paleta, tipografía, componentes)
@@ -89,6 +90,8 @@ Astro busca archivos `.astro` o `.md` en el directorio `src/pages/`. Cada págin
 | `/roadmap` | Tablero Kanban con el estado del proyecto |
 | `/about` | Información sobre el archivo |
 | `/admin` | Panel de escritura directa (formularios CRUD hacia InsForge) |
+| `/tags` | Índice general de etiquetas unificadas |
+| `/tags/[slug]` | Contenido relacionado cruzado por etiqueta |
 | `/404` | Página de error personalizada |
 
 ## 💾 Almacenamiento Local (localStorage)
@@ -103,6 +106,7 @@ El sitio utiliza `localStorage` para persistir preferencias y progreso del usuar
 | `bts-lore-checklist` | Progreso del checklist de exploración |
 | `bts-lore-study-progress` | Progreso de flashcards: tarjetas conocidas y pendientes de repaso |
 | `bts-lore-quiz-best-score` | Mejor puntaje obtenido en el quiz |
+| `bts-lore-admin-history` | Historial de acciones administrativas locales de la sesión |
 
 ## 🧞 Comandos Útiles
 
@@ -127,13 +131,18 @@ Todos los comandos se ejecutan desde la raíz del proyecto usando `pnpm 11`:
 
 ## 🔮 Fase de Desarrollo Actual
 
-El proyecto se encuentra en la **Fase 6 (Herramientas de Estudio e Interactividad)**.
+El proyecto se encuentra en la **Fase 6 (Herramientas de Estudio e Interactividad)** e integración de control administrativo.
 
-### Fase 6 — Herramientas de Estudio e Interactividad
+### Fase 6 — Herramientas de Estudio e Interactividad y Control de Calidad
 
 - **Modo Presentación para Guías:** Cada guía cuenta con una ruta `/guides/[slug]/presentation` que genera slides HTML a partir de los pasos. Incluye diapositiva de título, controles (anterior/siguiente/pantalla completa), contador, barra de progreso, navegación por teclado (`←` `→` `F`) y diseño oscuro standalone sin header/footer.
 - **Modo Estudio (Flashcards):** La página `/study` genera tarjetas de estudio automáticamente desde tres fuentes de datos (glosario, símbolos y eras). Cada flashcard muestra una pregunta, se revela con un toque, y el usuario marca «Lo sabía» o «Repasar después». El progreso se persiste en `localStorage` bajo `bts-lore-study-progress`. Incluye filtros por categoría, barajeo aleatorio y sesiones de repaso de pendientes.
 - **Quiz del Lore:** Un quiz de opción múltiple en `/quiz` con 15 preguntas curadas (`src/data/quiz.ts`). Muestra feedback inmediato con explicación, calcula puntaje con anillo visual animado, guarda el mejor puntaje en `localStorage` bajo `bts-lore-quiz-best-score`, y soporta atajos de teclado (`1-4` para responder, `Enter`/`→` para avanzar).
+- **Panel de Calidad de Contenido (Admin):** Sección en `/admin` que analiza e identifica dinámicamente deficiencias en las entidades de datos (descripción corta, falta de tags, relaciones, slugs o fechas), agrupando problemas por tipo de contenido y niveles de prioridad (baja, media, alta) mediante la utilidad `src/utils/contentQuality.ts`.
+- **Historial Administrativo Local:** Sistema en `/admin` que registra acciones administrativas (creación e importación) en el navegador del cliente bajo `bts-lore-admin-history` mediante `src/utils/adminHistory.ts`, actualizando la UI de actividad reciente en tiempo real y con botón de limpieza.
+- **Sistema de Etiquetas Unificado:** Habilitación de la ruta `/tags` y `/tags/[slug]` para navegar contenido relacionado (eras, teorías, símbolos, cronología, canciones y guías) cruzando datos de etiquetas unificadas definidas en `src/data/tags.ts`.
+- **Navegación por Breadcrumbs con JSON-LD:** Componente `Breadcrumbs.astro` integrado en las 7 vistas dinámicas de detalle con soporte SEO estructurado y navegación adaptativa.
+- **Página de Error 404 Premium:** Portal de error `/404` tematizado con animación de portal cósmico puro en SVG/CSS y botones adaptativos rápidos de navegación.
 
 ### Fases anteriores (1–5)
 

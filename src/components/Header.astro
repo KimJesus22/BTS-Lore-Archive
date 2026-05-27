@@ -4,13 +4,13 @@ import { navigation } from '../data/navigation';
 
 <header class="sticky top-0 z-50 w-full bg-surface/70 backdrop-blur-xl border-b border-border">
   <div class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop h-20 flex items-center justify-between">
-    <div class="flex-shrink-0">
+    <div class="flex-shrink-0 mr-8">
       <a href="/" class="font-serif text-xl sm:text-2xl font-bold text-on-surface">
         Cosmic<span class="text-primary-light">Archive</span>
       </a>
     </div>
     
-    <nav class="hidden md:flex gap-8 items-center">
+    <nav class="hidden md:flex gap-5 items-center">
       {navigation.map((item) => (
         <a href={item.href} class="text-on-surface-variant hover:text-primary-light transition-colors font-sans text-sm tracking-wide">
           {item.name}

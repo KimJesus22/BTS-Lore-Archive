@@ -1,0 +1,228 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { mockTags } from '../../data/tags';
+import type { Tag } from '../../data/tags';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getEras } from '../../services/eras.service';
+import { getTheories } from '../../services/theories.service';
+import { getSymbols } from '../../services/symbols.service';
+import { getTimelineEvents } from '../../services/timeline.service';
+import { guides } from '../../data/guides';
+
+export function getStaticPaths() {
+  return mockTags.map((tag) => ({
+    params: { slug: tag.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const tag = mockTags.find((t) => t.slug === slug);
+if (!tag) return Astro.redirect('/tags');
+
+// --- Helpers ---
+const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const matchesTag = (itemTags: string[] | undefined, matchSlugs: string[]): boolean => {
+  if (!itemTags || itemTags.length === 0) return false;
+  const normalizedMatch = matchSlugs.map(normalize);
+  return itemTags.some((t) => normalizedMatch.includes(normalize(t)));
+};
+
+// --- Fetch data ---
+const eras = await getEras();
+const theories = await getTheories();
+const symbols = await getSymbols();
+const timeline = await getTimelineEvents();
+
+// --- Cross-reference ---
+const relatedEras = tag.matchEras
+  ? eras.filter((e) => tag.matchEras!.includes(e.slug))
+  : [];
+
+const relatedTheories = theories.filter((t) => matchesTag(t.tags, tag.matchSlugs));
+const relatedSymbols = symbols.filter((s) => matchesTag(s.tags, tag.matchSlugs));
+
+// Timeline: match by description/title text since events don't have tags
+const relatedTimeline = timeline.filter((ev) => {
+  const text = normalize(`${ev.title} ${ev.description}`);
+  return tag.matchSlugs.some((m) => text.includes(normalize(m)));
+});
+
+const relatedGuides = guides.filter((g) => matchesTag(g.tags, tag.matchSlugs));
+
+// Color
+const colorDot: Record<string, string> = {
+  primary: 'bg-primary-light shadow-[0_0_12px_rgba(109,40,217,0.5)]',
+  amber: 'bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.5)]',
+  rose: 'bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.5)]',
+  blue: 'bg-blue-400 shadow-[0_0_12px_rgba(96,165,250,0.5)]',
+  emerald: 'bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.5)]',
+  cyan: 'bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.5)]',
+  violet: 'bg-violet-400 shadow-[0_0_12px_rgba(167,139,250,0.5)]',
+  orange: 'bg-orange-400 shadow-[0_0_12px_rgba(251,146,60,0.5)]',
+  indigo: 'bg-indigo-400 shadow-[0_0_12px_rgba(129,140,248,0.5)]',
+  pink: 'bg-pink-400 shadow-[0_0_12px_rgba(244,114,182,0.5)]',
+  teal: 'bg-teal-400 shadow-[0_0_12px_rgba(45,212,191,0.5)]',
+  yellow: 'bg-yellow-400 shadow-[0_0_12px_rgba(250,204,21,0.5)]',
+};
+
+const colorBadge: Record<string, string> = {
+  primary: 'border-primary/40 bg-primary/15 text-primary-light',
+  amber: 'border-amber-500/40 bg-amber-500/15 text-amber-400',
+  rose: 'border-rose-500/40 bg-rose-500/15 text-rose-400',
+  blue: 'border-blue-500/40 bg-blue-500/15 text-blue-400',
+  emerald: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-400',
+  cyan: 'border-cyan-500/40 bg-cyan-500/15 text-cyan-400',
+  violet: 'border-violet-500/40 bg-violet-500/15 text-violet-400',
+  orange: 'border-orange-500/40 bg-orange-500/15 text-orange-400',
+  indigo: 'border-indigo-500/40 bg-indigo-500/15 text-indigo-400',
+  pink: 'border-pink-500/40 bg-pink-500/15 text-pink-400',
+  teal: 'border-teal-500/40 bg-teal-500/15 text-teal-400',
+  yellow: 'border-yellow-500/40 bg-yellow-500/15 text-yellow-400',
+};
+
+const dot = colorDot[tag.colorName ?? ''] ?? 'bg-white/60';
+const badge = colorBadge[tag.colorName ?? ''] ?? 'border-white/20 bg-white/10 text-on-surface';
+
+const totalRelated = relatedEras.length + relatedTheories.length + relatedSymbols.length + relatedTimeline.length + relatedGuides.length;
+
+interface Section { title: string; icon: string; items: { title: string; href: string; subtitle?: string }[] }
+
+const sections: Section[] = [];
+
+if (relatedEras.length > 0) {
+  sections.push({
+    title: 'Eras',
+    icon: '🌐',
+    items: relatedEras.map((e) => ({
+      title: e.title,
+      href: `/eras/${e.id}`,
+      subtitle: e.start_year && e.end_year ? `${e.start_year}–${e.end_year}` : undefined,
+    })),
+  });
+}
+
+if (relatedTheories.length > 0) {
+  sections.push({
+    title: 'Teorías',
+    icon: '💡',
+    items: relatedTheories.map((t) => ({
+      title: t.title,
+      href: `/theories/${t.slug}`,
+      subtitle: t.status === 'draft' ? 'Borrador' : undefined,
+    })),
+  });
+}
+
+if (relatedSymbols.length > 0) {
+  sections.push({
+    title: 'Símbolos',
+    icon: '✦',
+    items: relatedSymbols.map((s) => ({
+      title: s.name,
+      href: `/symbols/${s.slug}`,
+      subtitle: s.shortDescription,
+    })),
+  });
+}
+
+if (relatedTimeline.length > 0) {
+  sections.push({
+    title: 'Cronología',
+    icon: '📅',
+    items: relatedTimeline.map((ev) => ({
+      title: ev.title,
+      href: '/timeline',
+      subtitle: ev.event_date ?? undefined,
+    })),
+  });
+}
+
+if (relatedGuides.length > 0) {
+  sections.push({
+    title: 'Guías',
+    icon: '📖',
+    items: relatedGuides.map((g) => ({
+      title: g.title,
+      href: `/guides/${g.slug}`,
+      subtitle: `${g.steps.length} pasos`,
+    })),
+  });
+}
+---
+
+<BaseLayout title={`#${tag.name}`} description={tag.description}>
+  <div class="max-w-[960px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <Breadcrumbs items={[{ label: 'Etiquetas', href: '/tags' }, { label: `#${tag.name}` }]} />
+
+    <!-- Header -->
+    <header class="mb-16 text-center">
+      <div class="flex items-center justify-center gap-4 mb-6">
+        <div class={`w-3 h-3 rounded-full ${dot}`}></div>
+        <h1 class="text-display-lg-mobile md:text-display-lg font-serif font-bold text-on-surface">
+          {'#'}{tag.name}
+        </h1>
+      </div>
+      <p class="text-body-md md:text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-6">
+        {tag.description}
+      </p>
+      <span class={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${badge}`}>
+        {totalRelated} contenido{totalRelated === 1 ? '' : 's'} relacionado{totalRelated === 1 ? '' : 's'}
+      </span>
+    </header>
+
+    <!-- Content sections -->
+    {totalRelated === 0 ? (
+      <div class="rounded-xl border border-dashed border-white/15 bg-white/[0.03] p-8 text-center">
+        <p class="font-semibold text-on-surface mb-1">Sin contenido vinculado</p>
+        <p class="text-sm text-on-surface-variant">Esta etiqueta aún no tiene contenido asociado. A medida que se amplíe el archivo, más resultados aparecerán aquí.</p>
+      </div>
+    ) : (
+      <div class="space-y-10">
+        {sections.map((section) => (
+          <section class="glass-card p-6 md:p-8">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-border/50">
+              <span class="text-lg">{section.icon}</span>
+              <h2 class="text-xl font-serif text-on-surface">{section.title}</h2>
+              <span class="label-caps text-on-surface-variant ml-auto">
+                {section.items.length}
+              </span>
+            </div>
+            <div class="space-y-3">
+              {section.items.map((item) => (
+                <a
+                  href={item.href}
+                  class="flex items-center justify-between gap-4 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 transition-all hover:bg-white/[0.06] hover:border-white/15 group"
+                >
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-on-surface group-hover:text-primary-light transition-colors truncate">{item.title}</p>
+                    {item.subtitle && (
+                      <p class="text-xs text-on-surface-variant mt-0.5 truncate">{item.subtitle}</p>
+                    )}
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 flex-shrink-0 text-on-surface-variant/40 group-hover:text-primary-light transition-colors">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
+                </a>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    )}
+
+    <!-- Other tags -->
+    <section class="mt-16">
+      <h2 class="text-lg font-serif text-on-surface mb-6">Otras etiquetas</h2>
+      <div class="flex flex-wrap gap-3">
+        {mockTags.filter((t) => t.slug !== tag.slug).map((t) => (
+          <a
+            href={`/tags/${t.slug}`}
+            class="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm font-semibold text-on-surface-variant hover:border-primary/40 hover:text-primary-light transition-all"
+          >
+            {'#'}{t.name}
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+</BaseLayout>

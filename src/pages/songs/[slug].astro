@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SpoilerBlock from '../../components/SpoilerBlock.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { albums } from '../../data/albums';
 import type { Song, Album } from '../../types/albums';
 
@@ -30,14 +31,7 @@ const { song, album } = Astro.props;
   <article class="max-w-[800px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
     
     <header class="mb-12 md:mb-16">
-      <div class="flex items-center gap-3 mb-6">
-        <a href={`/albums/${album.slug}`} class="text-on-surface-variant hover:text-primary-light transition-colors font-mono text-sm tracking-wide flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-          </svg>
-          {album.title}
-        </a>
-      </div>
+      <Breadcrumbs items={[{ label: 'Álbumes', href: '/albums' }, { label: album.title, href: `/albums/${album.slug}` }, { label: song.title }]} />
 
       <div class="flex flex-col gap-4">
         <div class="flex flex-wrap items-center gap-4">

@@ -27,6 +27,7 @@
 
 <script>
   import { createGlossaryTerm } from '../../services/glossary.service';
+  import { logAdminAction } from '../../utils/adminHistory';
 
   const form = document.getElementById('glossary-form') as HTMLFormElement;
   const msg = document.getElementById('gl-msg');
@@ -53,6 +54,7 @@
         
         msg.textContent = '¡Término guardado!';
         msg.className = 'text-sm text-center mt-2 text-primary-light block';
+        logAdminAction('created_glossary_term', 'glossary', term);
         form.reset();
       } catch (err) {
         console.error(err);

@@ -1,0 +1,187 @@
+---
+import { getEras } from '../../services/eras.service';
+import { getGlossaryTerms } from '../../services/glossary.service';
+import { getSymbols } from '../../services/symbols.service';
+import { getTheories } from '../../services/theories.service';
+import { getTimelineEvents } from '../../services/timeline.service';
+import { analyzeEras, analyzeTimeline, analyzeTheories, analyzeGlossary, analyzeSymbols, summarizeIssues } from '../../utils/contentQuality';
+import type { ContentIssue, ContentType, IssuePriority } from '../../utils/contentQuality';
+
+const eras = await getEras();
+const glossary = await getGlossaryTerms();
+const symbols = await getSymbols();
+const theories = await getTheories();
+const timeline = await getTimelineEvents();
+
+// Analyze
+const allIssues: ContentIssue[] = [
+  ...analyzeEras(eras),
+  ...analyzeTimeline(timeline),
+  ...analyzeTheories(theories),
+  ...analyzeGlossary(glossary),
+  ...analyzeSymbols(symbols),
+];
+
+const summary = summarizeIssues(allIssues);
+
+const typeLabels: Record<ContentType, string> = {
+  era: 'Eras',
+  timeline: 'Cronología',
+  theory: 'Teorías',
+  glossary: 'Glosario',
+  symbol: 'Símbolos',
+};
+
+const typeIcons: Record<ContentType, string> = {
+  era: '🌐',
+  timeline: '📅',
+  theory: '💡',
+  glossary: '📖',
+  symbol: '✦',
+};
+
+const priorityStyles: Record<IssuePriority, { dot: string; badge: string }> = {
+  alta: {
+    dot: 'bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.6)]',
+    badge: 'border-red-500/30 bg-red-500/10 text-red-400',
+  },
+  media: {
+    dot: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]',
+    badge: 'border-amber-500/30 bg-amber-500/10 text-amber-400',
+  },
+  baja: {
+    dot: 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.5)]',
+    badge: 'border-blue-500/30 bg-blue-500/10 text-blue-400',
+  },
+};
+
+const contentTypes: ContentType[] = ['era', 'timeline', 'theory', 'glossary', 'symbol'];
+---
+
+<section id="content-quality">
+  <div class="mb-8 border-b border-border/50 pb-4">
+    <h2 class="text-2xl font-serif text-on-surface">Calidad del Contenido</h2>
+    <p class="text-on-surface-variant text-sm">Análisis automático de datos incompletos o que necesitan revisión. No se modifica ningún dato.</p>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="glass-card p-5 text-center">
+      <span class="block label-caps text-on-surface-variant mb-2">Total</span>
+      <p class="text-2xl font-serif text-on-surface">{summary.total}</p>
+    </div>
+    <div class="glass-card p-5 text-center border-red-500/20">
+      <span class="block label-caps text-red-400 mb-2">Alta</span>
+      <p class="text-2xl font-serif text-red-400">{summary.alta}</p>
+    </div>
+    <div class="glass-card p-5 text-center border-amber-500/20">
+      <span class="block label-caps text-amber-400 mb-2">Media</span>
+      <p class="text-2xl font-serif text-amber-400">{summary.media}</p>
+    </div>
+    <div class="glass-card p-5 text-center border-blue-500/20">
+      <span class="block label-caps text-blue-400 mb-2">Baja</span>
+      <p class="text-2xl font-serif text-blue-400">{summary.baja}</p>
+    </div>
+  </div>
+
+  {summary.total === 0 ? (
+    <div class="rounded-xl border border-dashed border-emerald-500/30 bg-emerald-500/[0.05] p-8 text-center">
+      <p class="font-semibold text-emerald-400 mb-1">Sin problemas detectados</p>
+      <p class="text-sm text-on-surface-variant">Todo el contenido cumple con los criterios mínimos de calidad.</p>
+    </div>
+  ) : (
+    <div class="space-y-6">
+      <!-- Filter buttons -->
+      <div class="flex flex-wrap gap-2" id="quality-filters">
+        <button type="button" data-qf="all" class="qf-btn active label-caps rounded-full border px-4 py-2 border-primary/50 bg-primary/20 text-primary-light">
+          Todos ({summary.total})
+        </button>
+        <button type="button" data-qf="alta" class="qf-btn label-caps rounded-full border px-4 py-2 border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-red-500/35 hover:text-red-400">
+          Alta ({summary.alta})
+        </button>
+        <button type="button" data-qf="media" class="qf-btn label-caps rounded-full border px-4 py-2 border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-amber-500/35 hover:text-amber-400">
+          Media ({summary.media})
+        </button>
+        <button type="button" data-qf="baja" class="qf-btn label-caps rounded-full border px-4 py-2 border-white/10 bg-white/[0.03] text-on-surface-variant hover:border-blue-500/35 hover:text-blue-400">
+          Baja ({summary.baja})
+        </button>
+      </div>
+
+      <!-- Issue groups by content type -->
+      {contentTypes.map((type) => {
+        const typeIssues = summary.byType[type];
+        if (typeIssues.length === 0) return null;
+
+        return (
+          <div class="quality-group glass-card p-6" data-qtype={type}>
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-border/50">
+              <div class="flex items-center gap-3">
+                <span class="text-lg">{typeIcons[type]}</span>
+                <h3 class="text-lg font-serif text-on-surface">{typeLabels[type]}</h3>
+              </div>
+              <span class="label-caps text-on-surface-variant">
+                {typeIssues.length} problema{typeIssues.length === 1 ? '' : 's'}
+              </span>
+            </div>
+
+            <div class="space-y-3">
+              {typeIssues.map((issue) => (
+                <div
+                  class="quality-issue flex items-start gap-3 rounded-lg border border-white/[0.06] bg-white/[0.02] p-4 transition-opacity"
+                  data-priority={issue.priority}
+                >
+                  <div class={`mt-1.5 w-2 h-2 flex-shrink-0 rounded-full ${priorityStyles[issue.priority].dot}`}></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                      <span class="text-sm font-semibold text-on-surface truncate">{issue.contentTitle}</span>
+                      <span class={`label-caps rounded-full border px-2 py-0.5 text-[10px] ${priorityStyles[issue.priority].badge}`}>
+                        {issue.priority}
+                      </span>
+                    </div>
+                    <p class="text-sm text-on-surface-variant">{issue.issue}</p>
+                  </div>
+                  <span class="flex-shrink-0 text-[10px] font-mono text-on-surface-variant/50 mt-1">{issue.contentId.slice(0, 8)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  )}
+</section>
+
+<script>
+  const filters = document.querySelectorAll<HTMLButtonElement>('.qf-btn');
+  const issues = document.querySelectorAll<HTMLElement>('.quality-issue');
+
+  filters.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.qf;
+
+      // Update active state
+      filters.forEach((f) => {
+        const isActive = f.dataset.qf === filter;
+        f.classList.toggle('active', isActive);
+        f.classList.toggle('border-primary/50', isActive);
+        f.classList.toggle('bg-primary/20', isActive);
+        f.classList.toggle('text-primary-light', isActive);
+        f.classList.toggle('border-white/10', !isActive);
+        f.classList.toggle('bg-white/[0.03]', !isActive);
+        f.classList.toggle('text-on-surface-variant', !isActive);
+      });
+
+      // Filter issues
+      issues.forEach((issue) => {
+        const matches = filter === 'all' || issue.dataset.priority === filter;
+        issue.style.display = matches ? '' : 'none';
+      });
+
+      // Hide empty groups
+      document.querySelectorAll<HTMLElement>('.quality-group').forEach((group) => {
+        const visible = group.querySelectorAll('.quality-issue:not([style*="display: none"])').length;
+        group.style.display = visible > 0 ? '' : 'none';
+      });
+    });
+  });
+</script>

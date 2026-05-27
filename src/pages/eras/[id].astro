@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import FavoriteButton from '../../components/FavoriteButton.astro';
 import PersonalNotes from '../../components/PersonalNotes.astro';
 import TimelineNode from '../../components/TimelineNode.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { getEras } from '../../services/eras.service';
 import type { Era } from '../../types/content';
 
@@ -29,14 +30,7 @@ const metaDescription = era.description.length > 155 ? `${era.description.slice(
   <article class="max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
     
     <header class="mb-16 pb-8 border-b border-border/50">
-      <div class="flex items-center gap-4 mb-6">
-        <a href="/eras" class="text-on-surface-variant hover:text-primary-light transition-colors flex items-center text-sm font-semibold">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-          </svg>
-          Volver a Eras
-        </a>
-      </div>
+      <Breadcrumbs items={[{ label: 'Eras', href: '/eras' }, { label: era.title }]} />
 
       <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div>

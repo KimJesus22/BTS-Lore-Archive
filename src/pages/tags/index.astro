@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { mockTags } from '../data/tags';
+
+const tags = mockTags.slice().sort((a, b) => a.name.localeCompare(b.name, 'es'));
+
+const colorMap: Record<string, string> = {
+  primary: 'border-primary/40 bg-primary/15 text-primary-light hover:bg-primary/25 hover:border-primary/60',
+  amber: 'border-amber-500/40 bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 hover:border-amber-500/60',
+  rose: 'border-rose-500/40 bg-rose-500/15 text-rose-400 hover:bg-rose-500/25 hover:border-rose-500/60',
+  blue: 'border-blue-500/40 bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 hover:border-blue-500/60',
+  emerald: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 hover:border-emerald-500/60',
+  cyan: 'border-cyan-500/40 bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 hover:border-cyan-500/60',
+  violet: 'border-violet-500/40 bg-violet-500/15 text-violet-400 hover:bg-violet-500/25 hover:border-violet-500/60',
+  orange: 'border-orange-500/40 bg-orange-500/15 text-orange-400 hover:bg-orange-500/25 hover:border-orange-500/60',
+  indigo: 'border-indigo-500/40 bg-indigo-500/15 text-indigo-400 hover:bg-indigo-500/25 hover:border-indigo-500/60',
+  pink: 'border-pink-500/40 bg-pink-500/15 text-pink-400 hover:bg-pink-500/25 hover:border-pink-500/60',
+  teal: 'border-teal-500/40 bg-teal-500/15 text-teal-400 hover:bg-teal-500/25 hover:border-teal-500/60',
+  yellow: 'border-yellow-500/40 bg-yellow-500/15 text-yellow-400 hover:bg-yellow-500/25 hover:border-yellow-500/60',
+};
+
+const defaultColor = 'border-white/20 bg-white/10 text-on-surface hover:bg-white/15 hover:border-white/30';
+---
+
+<BaseLayout title="Etiquetas" description="Explora el universo BTS por etiquetas temáticas que conectan eras, teorías, símbolos y más.">
+  <div class="max-w-[960px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
+    <PageHeader
+      tag="Explorar"
+      title="Etiquetas"
+      description="Navega el universo narrativo por temas. Cada etiqueta agrupa contenido relacionado de distintas secciones."
+      align="center"
+    />
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {tags.map((tag) => {
+        const color = colorMap[tag.colorName ?? ''] ?? defaultColor;
+        return (
+          <a
+            href={`/tags/${tag.slug}`}
+            class={`group glass-card p-6 border transition-all duration-200 ${color}`}
+          >
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-lg font-mono font-bold">#</span>
+              <h2 class="text-lg font-serif font-bold">{tag.name}</h2>
+            </div>
+            <p class="text-sm text-on-surface-variant leading-relaxed line-clamp-2">
+              {tag.description}
+            </p>
+            <span class="mt-4 inline-block text-xs font-semibold opacity-60 group-hover:opacity-100 transition-opacity">
+              Ver contenido →
+            </span>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</BaseLayout>

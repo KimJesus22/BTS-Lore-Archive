@@ -25,6 +25,7 @@
 
 <script>
   import { createTimelineEvent } from '../../services/timeline.service';
+  import { logAdminAction } from '../../utils/adminHistory';
 
   const form = document.getElementById('timeline-form') as HTMLFormElement;
   const msg = document.getElementById('tl-msg');
@@ -52,6 +53,7 @@
         
         msg.textContent = '¡Evento registrado!';
         msg.className = 'text-sm text-center mt-2 text-secondary-dim block';
+        logAdminAction('created_timeline_event', 'timeline', title);
         form.reset();
       } catch (err) {
         console.error(err);

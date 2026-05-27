@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import { getSymbols } from '../../services/symbols.service';
 import SpoilerBlock from '../../components/SpoilerBlock.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import type { SymbolItem } from '../../types/symbols';
 
 export async function getStaticPaths() {
@@ -29,14 +30,7 @@ const { symbol } = Astro.props;
 >
   <article class="max-w-[960px] mx-auto px-margin-mobile md:px-margin-desktop py-stack-lg">
     
-    <div class="mb-8">
-      <a href="/symbols" class="inline-flex items-center text-sm font-semibold text-on-surface-variant hover:text-primary-light transition-colors group">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-        </svg>
-        Volver a la Biblioteca
-      </a>
-    </div>
+    <Breadcrumbs items={[{ label: 'Símbolos', href: '/symbols' }, { label: symbol.name }]} />
 
     {/* Header con Placeholder Visual */}
     <header class="mb-12 relative rounded-3xl overflow-hidden glass-card border-none bg-surface-container-high">

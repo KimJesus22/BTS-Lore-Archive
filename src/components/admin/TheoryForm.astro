@@ -40,6 +40,7 @@ import SimpleMarkdownEditor from './SimpleMarkdownEditor.astro';
 
 <script>
   import { createTheory } from '../../services/theories.service';
+  import { logAdminAction } from '../../utils/adminHistory';
 
   const form = document.getElementById('theory-form') as HTMLFormElement;
   const msg = document.getElementById('theory-msg');
@@ -68,6 +69,7 @@ import SimpleMarkdownEditor from './SimpleMarkdownEditor.astro';
         
         msg.textContent = '¡Teoría publicada!';
         msg.className = 'text-sm text-center mt-2 text-primary-light block';
+        logAdminAction('created_theory', 'theory', title);
         form.reset();
       } catch (err) {
         console.error(err);

@@ -139,6 +139,7 @@ Más contenido...
 
 <script>
   import { createTheory } from '../../services/theories.service';
+  import { logAdminAction } from '../../utils/adminHistory';
 
   /* ── Elementos DOM ── */
   const helpToggle  = document.getElementById('import-md-help-toggle') as HTMLButtonElement | null;
@@ -343,6 +344,7 @@ Más contenido...
 
       msg.textContent = '¡Teoría importada con éxito!';
       msg.className = 'text-sm text-center mt-2 text-primary-light block';
+      logAdminAction('imported_markdown', 'theory', title);
       form.reset();
 
       // Volver al paso de pegado después de un momento
